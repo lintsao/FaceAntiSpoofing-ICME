@@ -1,0 +1,49 @@
+
+# 1:
+# swap
+# oulu auc/acc: 0.7351/0.5147
+# casia auc/acc: 0.8718/0.5972
+
+# 2:
+# arcface softmax
+# content acc 會越勸越小於 0.5 
+# oulu auc/acc: 0.7700/0.4235
+# casia auc/acc: 0.817983/0.3805
+
+# 3:
+# sphereface softmax
+# oulu auc/acc: 0.7633/0.5770
+# casia auc/acc: 0.8570/0.6222
+
+# 4:
+# cosine softmax 
+# oulu auc/acc: 0.8162/0.5870
+# casia auc/acc: 0.8582/0.5944
+
+# 5: 
+# cosine softmax/ 3 domain/ lr: 0.0003
+# casia auc/acc: 0.9074/0.6056
+
+# 6: 
+# cosine softmax/ 3 domain/ lr: 0.0003
+# idiap auc/acc: 0.9594/ 0.7020
+
+# 7: 
+# cosine softmax/ 3 domain/ lr: 0.0003
+# msu auc/acc: 0.8817/ 0.6563
+
+# 8: 
+# cosine softmax/ 3 domain/ lr: 0.0003
+# oulu auc/acc: 0.7485/ 0.5592
+
+# 9: 
+# cosine softmax/ 3 domain/ lr: 0.0001
+# oulu auc/acc: 0.7485/ 0.5592
+
+# 10: 
+# cosine softmax/ 3 domain/ lr: 0.0001
+# oulu auc/acc:
+
+# 11: 
+# cosine softmax/ 3 domain/ lr: 0.0001/ triplet
+# msu auc/acc:
