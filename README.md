@@ -28,4 +28,13 @@ Dev        |  ?	   |    60	     |     60	       |     240	     |    360
 Test	     |  ?	   |    80	     |     80	       |     320	     |    480 
 
 ## Usuage 
+### unzip dataset
+**unzip dataset.zip**
+
+You will get
+
+- training folder: pr_depth_map
+- testing folder: Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp
+
+### Train model
 **FaceAntiSpoofing-WACV$ python3 main.py**
