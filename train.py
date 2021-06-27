@@ -29,7 +29,7 @@ from model import *
 from loss import *
 from dataset import *
 
-def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1', img_size=256, depth_size=64, batch_size=8, batch_triplet=4, lr=0.0003, n_epoch=100):
+def train(path='./', dataset_path='./dataset', target_domain='oulu', number_folder='1', img_size=256, depth_size=64, batch_size=8, batch_triplet=4, lr=0.0003, n_epoch=100):
     same_seeds(307)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
