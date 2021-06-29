@@ -1,0 +1,44 @@
+spoof_grl_content, spoof_grl_domain 合在一起 step
+
+target domain: MSU
+1.
+img_size=256, depth_size=64, batch_size=16, lr=0.0003, n_epoch=100, only mse
+best auc :
+best acc :
+best hter:
+
+2.
+img_size=256, depth_size=64, batch_size=16, lr=0.0003, n_epoch=100, only mse
+best auc :
+best acc :
+best hter:
+
+########################################################################################
+
+target domain: IDIAP
+1.
+best auc :
+best acc :
+best hter:
+
+########################################################################################
+
+target domain: OULU
+1.
+best auc :
+best acc :
+best hter:
+
+2.
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
+best auc :
+best acc :
+best hter:
+
+########################################################################################
+
+target domain: CASIA
+1.
+best auc :
+best acc :
+best hter:
