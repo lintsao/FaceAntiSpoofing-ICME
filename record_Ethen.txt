@@ -13,10 +13,22 @@ best auc :
 best acc :
 best hter:
 
+4. content 拿掉
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
+best auc :
+best acc :
+best hter:
+
 ########################################################################################
 
 target domain: IDIAP
 1.
+best auc :
+best acc :
+best hter:
+
+4. content 拿掉
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
 best auc :
 best acc :
 best hter:
@@ -31,6 +43,20 @@ best hter:
 
 2.
 img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
+domain_grl_content_loss 一直上升
+best auc :
+best acc :
+best hter:
+
+3.
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
+domain_grl_content_loss 一直上升
+best auc :
+best acc :
+best hter:
+
+4. content 拿掉
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
 best auc :
 best acc :
 best hter:
@@ -39,6 +65,12 @@ best hter:
 
 target domain: CASIA
 1.
+best auc :
+best acc :
+best hter:
+
+4. content 拿掉
+img_size=256, depth_size=64, batch_size=8, lr=0.0003, n_epoch=200, only mse
 best auc :
 best acc :
 best hter:

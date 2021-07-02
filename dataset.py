@@ -103,6 +103,23 @@ class Oulu_dataset(Dataset):
     def __len__(self):
         return(self.len)
 
+    def getbatch(self, mode, indices):
+        images = []
+        labels = []
+        if mode == 'train':
+            for index in indices:
+                image, _, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
+        else:
+            for index in indices:
+                image, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
 class MSU_dataset(Dataset): 
     def __init__(self, root, mode, transform = None, transform_depth = None, attack = None):
         self.common_path = root   
@@ -176,6 +193,23 @@ class MSU_dataset(Dataset):
     def __len__(self):
         return(self.len)
 
+    def getbatch(self, mode, indices):
+        images = []
+        labels = []
+        if mode == 'train':
+            for index in indices:
+                image, _, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
+        else:
+            for index in indices:
+                image, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
 class Idiap_dataset(Dataset): 
     def __init__(self, root, mode, transform = None, transform_depth = None, attack= None):
         self.common_path = root   
@@ -236,6 +270,23 @@ class Idiap_dataset(Dataset):
 
     def __len__(self):
         return(self.len)
+
+    def getbatch(self, mode, indices):
+        images = []
+        labels = []
+        if mode == 'train':
+            for index in indices:
+                image, _, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
+        else:
+            for index in indices:
+                image, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
 
 class Casia_dataset(Dataset): 
     def __init__(self, root, mode, transform = None, transform_depth = None, attack = None):
@@ -315,6 +366,23 @@ class Casia_dataset(Dataset):
     def __len__(self):
         return(self.len)
 
+    def getbatch(self, mode, indices):
+        images = []
+        labels = []
+        if mode == 'train':
+            for index in indices:
+                image, _, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
+        else:
+            for index in indices:
+                image, label = self.__getitem__(index)
+                images.append(image)
+                labels.append(label)
+            return torch.stack(images), torch.tensor(labels)
+
 def choose_dataset(path, target_domain, img_size, depth_size):
 
     transform = transforms.Compose([
@@ -362,8 +430,8 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     if target_domain == 'msu': 
         test_dataset = msu_test_real_dataset + msu_test_print_dataset + msu_test_replay_dataset
         domain1_real_dataset = idiap_train_real_dataset
-        domain1_print_dataset = idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset
-        domain1_replay_dataset = idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset
+        domain1_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset)
+        domain1_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset)
         domain2_real_dataset = oulu_train_real_dataset
         domain2_print_dataset = oulu_train_print_dataset
         domain2_replay_dataset = oulu_train_replay_dataset
@@ -388,7 +456,7 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain1_replay_dataset = msu_train_replay_dataset
         domain2_real_dataset = idiap_train_real_dataset
         domain2_print_dataset = idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset
-        domain2_replay_dataset = idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset
+        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset)
         domain3_real_dataset = casia_train_real_dataset
         domain3_print_dataset = casia_train_print_dataset
         domain3_replay_dataset = casia_train_replay_dataset   
@@ -399,7 +467,7 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain1_replay_dataset = msu_train_replay_dataset
         domain2_real_dataset = idiap_train_real_dataset
         domain2_print_dataset = idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset
-        domain2_replay_dataset = idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset
+        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset)
         domain3_real_dataset = oulu_train_real_dataset
         domain3_print_dataset = oulu_train_print_dataset
         domain3_replay_dataset = oulu_train_replay_dataset
