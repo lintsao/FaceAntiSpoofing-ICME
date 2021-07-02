@@ -44,7 +44,7 @@ same_seeds(0)
 """## Argument parsing"""
 
 args = {
-      'target': 'idiap',
+      'target': 'oulu',
       'type': 'replay_fixed',
       'spoof_encoder_msu': './model/msu/2/msu_spoof_encoder.pt',
       'spoof_classify_msu': './model/msu/2/msu_spoof_classify.pt',
@@ -143,6 +143,9 @@ images, labels = test_dataset.getbatch('test', img_indices)
 spoof_encoder.eval()
 spoof_classify.eval()
 img_indices_new = []
+real_num = 0 
+print_num = 0
+replay_num = 0
 with torch.no_grad():
     for batch_idx, (image, label) in enumerate(zip(images, labels)):
         image = image.unsqueeze(0).cuda()
@@ -152,7 +155,15 @@ with torch.no_grad():
         for j in range(len(output)):
             print(label[j].item(), torch.argmax(output[j], dim=0).item())
             if label[j].item() == torch.argmax(output[j], dim=0).item():
-                img_indices_new.append(img_indices[batch_idx])
+                if label[j].item() == 0 and real_num < 4:
+                    img_indices_new.append(img_indices[batch_idx])
+                    real_num += 1
+                if label[j].item() == 1 and print_num < 3:
+                    img_indices_new.append(img_indices[batch_idx])
+                    print_num += 1
+                if label[j].item() == 2 and replay_num < 3:
+                    img_indices_new.append(img_indices[batch_idx])
+                    replay_num += 1
                 # print(batch_idx, label[j].item(), torch.argmax(output[j], dim=0).item())
 
 # 讓實驗 reproducible
@@ -173,9 +184,10 @@ for idx, (image, label) in enumerate(zip(images.permute(0, 2, 3, 1).numpy(), lab
     lime_img, mask = explaination.get_image_and_mask(
                                 label=label.item(),
                                 positive_only=False,
+                                # negative_only=True,
                                 hide_rest=False,
                                 num_features=3,
-                                min_weight=0.01
+                                min_weight=0.0001
                             )
     # 把 explainer 解釋的結果轉成圖片
 
