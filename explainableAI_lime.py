@@ -155,21 +155,22 @@ with torch.no_grad():
         for j in range(len(output)):
             print(label[j].item(), torch.argmax(output[j], dim=0).item())
             if label[j].item() == torch.argmax(output[j], dim=0).item():
-                if label[j].item() == 0 and real_num < 4:
+                if label[j].item() == 0 and real_num < -1:
                     img_indices_new.append(img_indices[batch_idx])
                     real_num += 1
-                if label[j].item() == 1 and print_num < 3:
+                if label[j].item() == 1 and print_num < 100:
                     img_indices_new.append(img_indices[batch_idx])
                     print_num += 1
-                if label[j].item() == 2 and replay_num < 3:
+                if label[j].item() == 2 and replay_num < -1:
                     img_indices_new.append(img_indices[batch_idx])
                     replay_num += 1
-                # print(batch_idx, label[j].item(), torch.argmax(output[j], dim=0).item())
 
 # 讓實驗 reproducible
-limit_num = 10
+# img_indices_new = img_indices_new[70:80]
+print(img_indices_new)
+img_indices_new = [0, 15, 57, 166, 104, 119]
 images, labels = test_dataset.getbatch('test', img_indices_new)
-fig, axs = plt.subplots(2, limit_num, figsize=(15, 8))
+fig, axs = plt.subplots(2, len(img_indices_new), figsize=(15, 8))
 for idx, (image, label) in enumerate(zip(images.permute(0, 2, 3, 1).numpy(), labels)):
     print(idx, label)
     x = image.astype(np.double)
@@ -191,6 +192,12 @@ for idx, (image, label) in enumerate(zip(images.permute(0, 2, 3, 1).numpy(), lab
                             )
     # 把 explainer 解釋的結果轉成圖片
 
+    fig.set_size_inches(8, 4)
+    axs[0][idx].xaxis.set_major_locator(plt.NullLocator())
+    axs[0][idx].yaxis.set_major_locator(plt.NullLocator())
+    axs[1][idx].xaxis.set_major_locator(plt.NullLocator())
+    axs[1][idx].yaxis.set_major_locator(plt.NullLocator())
+
     if label == 0:
         axs[0][idx].set_title('real')
     elif label == 1:
@@ -200,7 +207,5 @@ for idx, (image, label) in enumerate(zip(images.permute(0, 2, 3, 1).numpy(), lab
 
     axs[0][idx].imshow(image)
     axs[1][idx].imshow(lime_img)
-    if idx+1 >= limit_num:
-        break
 
 plt.savefig('lime_{}.png'.format(args.target))
