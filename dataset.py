@@ -27,20 +27,20 @@ from scipy.interpolate import interp1d
 """## Dataset"""
 
 #    OULU          Users	 Real access	 Print attacks	 Video attacks	 Total
-#  Training	        20	      360           720	            720           1800 有少，只有 1253 (只偵測到 1792 人臉)
+#  Training	        20	      360           720	                720           1800 有少，只有 1253 (只偵測到 1792 人臉)
 #  Development	    15	      270	          540	            540	          1350
 #  Test	            20	      360	          720	            720	          1800 有少，只有 1799 v
 ################################################################################
 #    CASIA         Users	 Real access	 Print attacks	 Video attacks	 Total
-#  Training	        20	      60           	 120              60           240 有少，只有 239 v
+#  Training	        20	      60           	    120             60           240 有少，只有 239 v
 #  Test	            30	      90	           180	            90	         360 v
 ################################################################################
 #    MSU         Users	 Real access	 Print attacks	 Video attacks	 Total
-#  Training	        15	      30           	 30              60          120 v
+#  Training	        15	      30           	   30                60          120 v
 #  Test	            20	      40	           40	             80	         160 v
 ################################################################################
 #    IDIAP         Users	 Real access	 Print attacks	 Video attacks	 Total
-#  Training	        ?	      60           	 60             240           360 目前用 fixed: 60/ 30/ 120
+#  Training	        ?	      60           	   60               240           360 目前用 fixed: 60/ 30/ 120
 #  Development	    ?	      60	           60	            240	          360
 #  Test	            ?	      80	           80	            320	          480 有少，只有 479 v
 ################################################################################

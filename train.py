@@ -29,11 +29,11 @@ from model import *
 from loss import *
 from dataset import *
 
-def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1', img_size=256, depth_size=64, batch_size=8, batch_triplet=4, lr=0.0003, n_epoch=100, type = "auc"):
+def train(path='./', dataset_path='./dataset', target_domain='oulu', number_folder='2', img_size=256, depth_size=64, batch_size=8, batch_triplet=4, lr=0.0003, n_epoch=100):
     same_seeds(307)
     use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu")
-    print("finish initialization")
+    device = torch.device("cuda:0" if use_cuda else "cpu")
+    print("finish initialization, device: {}".format(device))
     
     # target:MSU    => 1: i, 2: o, 3: c
     # target:Idiap  => 1: m, 2: o, 3: c
@@ -106,8 +106,8 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
     class_criterion = nn.CrossEntropyLoss()
     class_criterion_re = MSE()
     mse_loss = MSE()
-    simse_loss = SIMSE()
-    triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
+    # simse_loss = SIMSE()
+    # triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
 
     #plot acc
     plot_auc = []
@@ -130,9 +130,11 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
         e_domain_grl_spoof_loss = 0.0 
         e_domain_grl_content_loss = 0.0 
         e_spoof_class_loss = 0.0 
-        e_spoof_grl_content_domain_loss = 0.0 
-        e_triplet_loss = 0.0 
+        e_spoof_grl_content_loss = 0.0 
+        e_spoof_grl_domain_loss = 0.0 
         e_recon_loss = 0.0 
+        e_depth_loss = 0.0
+        e_swap_loss = 0.0
         
         for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
 
@@ -151,33 +153,36 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             domain_grl_spoof_loss = 0.0 
             domain_grl_content_loss = 0.0 
             spoof_class_loss = 0.0 
-            spoof_grl_content_domain_loss = 0.0 
+            spoof_grl_content_loss = 0.0 
+            spoof_grl_domain_loss = 0.0 
             recon_loss = 0.0 
             depth_loss = 0.0
+            swap_loss = 0.0
 
             ###Set data###
-            d1_data = d1_data.expand(len(d1_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d2_data = d2_data.expand(len(d2_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d3_data = d3_data.expand(len(d3_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d1_depth = d1_depth[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d2_depth = d2_depth[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d3_depth = d3_depth[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d1_label = d1_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d2_label = d2_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d3_label = d3_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
+            len_data = min(len(d1_data), len(d2_data), len(d3_data))
+            d1_data = d1_data.expand(len(d1_data), 3, img_size , img_size)[:len_data].to(device)
+            d2_data = d2_data.expand(len(d2_data), 3, img_size , img_size)[:len_data].to(device)
+            d3_data = d3_data.expand(len(d3_data), 3, img_size , img_size)[:len_data].to(device)
+            d1_depth = d1_depth[:len_data].to(device)
+            d2_depth = d2_depth[:len_data].to(device)
+            d3_depth = d3_depth[:len_data].to(device)
+            d1_label = d1_label[:len_data].to(device)
+            d2_label = d2_label[:len_data].to(device)
+            d3_label = d3_label[:len_data].to(device)
     
             # 把所有不同domain的資料混在一起
             mixed_data = torch.cat([d1_data, d2_data, d3_data], dim = 0).to(device)
             mixed_depth = torch.cat([d1_depth, d2_depth, d3_depth], dim = 0).to(device)
             mixed_label = torch.cat([d1_label, d2_label, d3_label], dim = 0).to(device)
 
-            mixed_label_domain = torch.tensor([1/3]).repeat(len(d1_data) + len(d2_data) + len(d3_data), 3).to(device)
-            mixed_label_re = torch.tensor([1/3]).repeat(len(d1_data) + len(d2_data) + len(d3_data), 3).to(device) # real, print, replay，要讓模型無法分出來
+            mixed_label_domain = torch.tensor([1/3]).repeat(len_data*3, 3).to(device)
+            mixed_label_re = torch.tensor([1/3]).repeat(len_data*3, 3).to(device) # real, print, replay，要讓模型無法分出來
 
             #設定domain label
-            domain_label_true = torch.zeros([len(d1_data) + len(d2_data) + len(d3_data)],dtype=torch.long).to(device)
-            domain_label_true[len(d1_data):len(d1_data) + len(d2_data)] = 1
-            domain_label_true[len(d2_data) + len(d3_data):] = 2
+            domain_label_true = torch.zeros([len_data*3],dtype=torch.long).to(device)
+            domain_label_true[len_data:len_data*2] = 1
+            domain_label_true[len_data*2:] = 2
     
             ###Extract feature###
             spoof_feature = shared_spoof(mixed_data)
@@ -189,12 +194,11 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
 
             # ###Step 1 : 訓練 Domain Classifier(正向訓練)###
             domain_logit = domain_classify(domain_feature)
-            loss_domain = class_criterion(domain_logit, domain_label_true)
-            loss = loss_domain
-            domain_class_loss += loss 
+            domain_class_loss = class_criterion(domain_logit, domain_label_true)
             e_domain_class_loss += domain_class_loss
-            loss.backward()
 
+            loss = domain_class_loss
+            loss.backward()
             opt_domain_a_encoder.step()
             opt_domain_b_encoder.step()
             opt_domain_c_encoder.step()
@@ -210,31 +214,29 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             ###Step 2 : 讓Domain Classify GRL回spoof和content###
             #spoof部分
             spoof_domain_logit = softmax(domain_classify(spoof_feature))
-            loss_domain = class_criterion_re(spoof_domain_logit, mixed_label_domain) 
-            spoof_loss = gamma*loss_domain
-            domain_grl_spoof_loss += spoof_loss 
+            domain_grl_spoof_loss =  gamma*class_criterion_re(spoof_domain_logit, mixed_label_domain) 
             e_domain_grl_spoof_loss += domain_grl_spoof_loss
-            spoof_loss.backward()
-            opt_shared_spoof.step()
-            opt_shared_spoof.zero_grad() 
 
             #content部分
             content_domain_logit = softmax(domain_classify(content_feature))
-            loss_domain = class_criterion_re(content_domain_logit, mixed_label_domain) 
-            content_loss = gamma*loss_domain
-            domain_grl_content_loss += content_loss 
+            domain_grl_content_loss = gamma*class_criterion_re(content_domain_logit, mixed_label_domain) 
             e_domain_grl_content_loss += domain_grl_content_loss
-            content_loss.backward()
+
+            loss = domain_grl_spoof_loss + domain_grl_content_loss
+            loss.backward()
+            opt_shared_spoof.step()
             opt_shared_content.step()
+            opt_shared_spoof.zero_grad() 
             opt_shared_content.zero_grad() 
 
             ###Step 3 : 訓練 Spoof Classify(正向訓練)###
             spoof_feature = shared_spoof(mixed_data) 
-            _, loss_class = spoof_classify(spoof_feature, mixed_label, True)
-            loss_class *= beta
-            spoof_class_loss += loss_class 
+            _, spoof_class_loss = spoof_classify(spoof_feature, mixed_label, True)
+            spoof_class_loss *= beta
             e_spoof_class_loss += spoof_class_loss
-            loss_class.backward()
+
+            loss = spoof_class_loss
+            loss.backward()
             opt_shared_spoof.step()
             opt_spoof_classify.step()
             opt_shared_spoof.zero_grad() 
@@ -250,11 +252,13 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
 
             content_logit = softmax(spoof_classify(content_feature, mixed_label_re, False))
             domain_logit = softmax(spoof_classify(domain_feature, mixed_label_re, False))
-            loss_domain = class_criterion_re(content_logit, mixed_label_re)
-            loss_content = class_criterion_re(domain_logit, mixed_label_re)
-            loss = gamma*loss_content + gamma*loss_domain
-            spoof_grl_content_domain_loss += loss
-            e_spoof_grl_content_domain_loss += spoof_grl_content_domain_loss
+
+            spoof_grl_content_loss = gamma*class_criterion_re(content_logit, mixed_label_re)
+            spoof_grl_domain_loss = gamma*class_criterion_re(domain_logit, mixed_label_re)
+            e_spoof_grl_content_loss += spoof_grl_content_loss
+            e_spoof_grl_domain_loss += spoof_grl_domain_loss 
+
+            loss = spoof_grl_content_loss + spoof_grl_domain_loss
             loss.backward()
             opt_shared_content.step()
             opt_domain_a_encoder.step()
@@ -266,15 +270,17 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             opt_domain_c_encoder.zero_grad() 
 
             ###Step 3.5 : 訓練 depth###
-            # content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
-            # depth_recon = depth_map(content_feature)
+            content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
+            #depth_recon = depth_map(content_feature)
 
-            # err_sim1 = mse_loss(depth_recon, mixed_depth)
+            #err_sim1 = mse_loss(depth_recon, mixed_depth)
             # err_sim2 = simse_loss(depth_recon, mixed_depth)
-            # err = 0.00001*err_sim1 + 0.00001*err_sim2
-            # depth_loss += err
+            # err = 0.01*err_sim1 + 0.01*err_sim2
+            #depth_loss = 0.01*err_sim1
+            #e_depth_loss += depth_loss
 
-            # depth_loss.backward()
+            # loss = depth_loss
+            # loss.backward()
             # opt_shared_content.step()
             # opt_depth.step()
             # opt_shared_content.zero_grad()
@@ -282,79 +288,79 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             # depth_map.eval()
 
             ###Step 6 : Recon###
-            spoof_feature = shared_spoof(mixed_data) 
-            content_feature = shared_content(mixed_data) 
-            domain1_feature = domain_a_encoder(d1_data)
-            domain2_feature = domain_b_encoder(d2_data)
-            domain3_feature = domain_c_encoder(d2_data)
+            # spoof_feature = shared_spoof(mixed_data) 
+            # content_feature = shared_content(mixed_data) 
+            # domain1_feature = domain_a_encoder(d1_data)
+            # domain2_feature = domain_b_encoder(d2_data)
+            # domain3_feature = domain_c_encoder(d2_data)
 
-            d1_spoof = spoof_feature[:][:len(d1_data)]
-            d2_spoof = spoof_feature[:][len(d1_data):len(d1_data) + len(d2_data)]
-            d3_spoof = spoof_feature[:][len(d2_data) + len(d3_data):]
+            # d1_spoof = spoof_feature[:][:len_data]
+            # d2_spoof = spoof_feature[:][len_data:len_data*2]
+            # d3_spoof = spoof_feature[:][len_data*2:]
 
-            d1_content = content_feature[:][:len(d1_data)]
-            d2_content = content_feature[:][len(d1_data):len(d1_data) + len(d2_data)]
-            d3_content = content_feature[:][len(d2_data) + len(d3_data):]
+            # d1_content = content_feature[:][:len_data]
+            # d2_content = content_feature[:][len_data:len_data*2]
+            # d3_content = content_feature[:][len_data*2:]
 
-            d1_recon = torch.cat([d1_spoof, d1_content, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            d2_recon = torch.cat([d2_spoof, d2_content, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            d3_recon = torch.cat([d3_spoof, d3_content, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # d1_recon = torch.cat([d1_spoof, d1_content, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # d2_recon = torch.cat([d2_spoof, d2_content, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # d3_recon = torch.cat([d3_spoof, d3_content, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
 
-            d1_recon = decode(d1_recon)
-            d2_recon = decode(d2_recon)
-            d3_recon = decode(d3_recon)
+            # d1_recon = decode(d1_recon)
+            # d2_recon = decode(d2_recon)
+            # d3_recon = decode(d3_recon)
 
-            err_sim1 = mse_loss(d1_recon, d1_data)
-            err_sim2 = simse_loss(d1_recon, d1_data)
-            err_sim3 = mse_loss(d2_recon, d2_data)
-            err_sim4 = simse_loss(d2_recon, d2_data)
-            err_sim5 = mse_loss(d3_recon, d3_data)
-            err_sim6 = simse_loss(d3_recon, d3_data)
-            
-            err = 0.01*err_sim1 + 0.01*err_sim2 + 0.01*err_sim3 + 0.01*err_sim4 + 0.01*err_sim5 + 0.01*err_sim6
-            recon_loss += err
-            e_recon_loss += recon_loss
-            err.backward()
+            # err_sim1 = mse_loss(d1_recon, d1_data)
+            # # err_sim2 = simse_loss(d1_recon, d1_data)
+            # err_sim3 = mse_loss(d2_recon, d2_data)
+            # # err_sim4 = simse_loss(d2_recon, d2_data)
+            # err_sim5 = mse_loss(d3_recon, d3_data)
+            # # err_sim6 = simse_loss(d3_recon, d3_data)      
+            # # recon_loss = 0.01*err_sim1 + 0.01*err_sim2 + 0.01*err_sim3 + 0.01*err_sim4 + 0.01*err_sim5 + 0.01*err_sim6
+            # recon_loss = 0.01*err_sim1 + 0.01*err_sim3 + 0.01*err_sim5
+            # e_recon_loss += recon_loss
 
-            opt_shared_spoof.step()
-            opt_shared_content.step()
-            opt_domain_a_encoder.step()
-            opt_domain_b_encoder.step()
-            opt_domain_c_encoder.step()
-            opt_decode.step()
-            opt_shared_spoof.zero_grad() 
-            opt_shared_content.zero_grad() 
-            opt_domain_a_encoder.zero_grad() 
-            opt_domain_b_encoder.zero_grad() 
-            opt_domain_c_encoder.zero_grad() 
-            opt_decode.zero_grad() 
+            # loss = recon_loss 
+            # loss.backward()
+            # opt_shared_spoof.step()
+            # opt_shared_content.step()
+            # opt_domain_a_encoder.step()
+            # opt_domain_b_encoder.step()
+            # opt_domain_c_encoder.step()
+            # opt_decode.step()
+            # opt_shared_spoof.zero_grad() 
+            # opt_shared_content.zero_grad() 
+            # opt_domain_a_encoder.zero_grad() 
+            # opt_domain_b_encoder.zero_grad() 
+            # opt_domain_c_encoder.zero_grad() 
+            # opt_decode.zero_grad() 
 
-            loss_swap_spoof,loss_swap_domain = 0, 0
+            e_recon_loss,recon_loss,loss_swap_spoof,loss_swap_domain = 0,0,0, 0
             
             ''' feature disentanglement '''
             '''
             domain_classify.eval()
             spoof_classify.eval()
-            d1_data = d1_data.expand(len(d1_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d2_data = d2_data.expand(len(d2_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d3_data = d3_data.expand(len(d3_data), 3, img_size , img_size)[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d1_label = d1_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d2_label = d2_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
-            d3_label = d3_label[:min(len(d1_data), len(d2_data), len(d3_data))].to(device)
+            d1_data = d1_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
+            d2_data = d2_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
+            d3_data = d3_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
+            d1_label = d1_label[:len_data].to(device)
+            d2_label = d2_label[:len_data].to(device)
+            d3_label = d3_label[:len_data].to(device)
 
-            domain_label_true = torch.zeros([(len(d1_data) + len(d2_data) + len(d3_data))*2],dtype=torch.long).to(device)
-            domain_label_true[len(d1_data)*2:(len(d1_data) + len(d2_data))*2] = 1
-            domain_label_true[(len(d2_data) + len(d3_data))*2:] = 2
+            domain_label_true = torch.zeros([(len_data*3)*2],dtype=torch.long).to(device)
+            domain_label_true[len_data*2:(len_data*2)*2] = 1
+            domain_label_true[(len_data*2)*2:] = 2
 
             mixed_data = torch.cat([d1_data, d2_data, d3_data], dim = 0).to(device)
             spoof_feature = shared_spoof(mixed_data)
-            spoof1_feature = spoof_feature[:len(d1_data)]
-            spoof2_feature = spoof_feature[len(d1_data):len(d1_data) + len(d2_data)]
-            spoof3_feature = spoof_feature[len(d2_data) + len(d3_data):]
+            spoof1_feature = spoof_feature[:len_data]
+            spoof2_feature = spoof_feature[len_data:len_data*2]
+            spoof3_feature = spoof_feature[len_data*2:]
             content_feature = shared_content(mixed_data)
-            content1_feature = content_feature[:len(d1_data)]
-            content2_feature = content_feature[len(d1_data):len(d1_data) + len(d2_data)]
-            content3_feature = content_feature[len(d2_data) + len(d3_data):]
+            content1_feature = content_feature[:len_data]
+            content2_feature = content_feature[len_data:len_data*2]
+            content3_feature = content_feature[len_data*2:]
             domain1_feature = domain_a_encoder(d1_data)
             domain2_feature = domain_b_encoder(d2_data)
             domain3_feature = domain_c_encoder(d3_data)
@@ -387,35 +393,35 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             domain_recon_logit = domain_classify(domain_recon_feature)
             loss_swap_domain = class_criterion(domain_recon_logit, domain_label_true)
 
-            ###for spoof###
-            
-            s1to2_recon = torch.cat([spoof2_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s1to3_recon = torch.cat([spoof3_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s2to1_recon = torch.cat([spoof1_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s2to3_recon = torch.cat([spoof3_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s3to1_recon = torch.cat([spoof1_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s3to2_recon = torch.cat([spoof2_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            s1to2_recon = decode(s1to2_recon)
-            s1to3_recon = decode(s1to3_recon)
-            s2to1_recon = decode(s2to1_recon)
-            s2to3_recon = decode(s2to3_recon)
-            s3to1_recon = decode(s3to1_recon)
-            s3to2_recon = decode(s3to2_recon)
-            s_recon_feature = shared_spoof(torch.cat([s2to1_recon, s3to1_recon, s1to2_recon,
-                                                    s3to2_recon, s1to3_recon, s2to3_recon], dim = 0)).to(device)
-            # spoof_recon_logit = spoof_classify(s_recon_feature)
-            mixed_label = torch.cat([d1_label, d1_label, d2_label, d2_label, d3_label, d3_label], dim = 0).to(device)
-            _, loss_swap_spoof = spoof_classify(s_recon_feature, mixed_label, True)
-            
-            
+            # ###for spoof###
+            # s1to2_recon = torch.cat([spoof2_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s1to3_recon = torch.cat([spoof3_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s2to1_recon = torch.cat([spoof1_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s2to3_recon = torch.cat([spoof3_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s3to1_recon = torch.cat([spoof1_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s3to2_recon = torch.cat([spoof2_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
+            # s1to2_recon = decode(s1to2_recon)
+            # s1to3_recon = decode(s1to3_recon)
+            # s2to1_recon = decode(s2to1_recon)
+            # s2to3_recon = decode(s2to3_recon)
+            # s3to1_recon = decode(s3to1_recon)
+            # s3to2_recon = decode(s3to2_recon)
+            # s_recon_feature = shared_spoof(torch.cat([s2to1_recon, s3to1_recon, s1to2_recon,
+            #                                         s3to2_recon, s1to3_recon, s2to3_recon], dim = 0)).to(device)
+            # # spoof_recon_logit = spoof_classify(s_recon_feature)
+            # mixed_label = torch.cat([d1_label, d1_label, d2_label, d2_label, d3_label, d3_label], dim = 0).to(device)
+            # _, loss_swap_spoof = spoof_classify(s_recon_feature, mixed_label, True)
+            # swap_loss = lambda_function(10, epoch)*(loss_swap_domain + beta*loss_swap_spoof)
+            swap_loss = lambda_function(10, epoch)*(loss_swap_domain)
+            e_swap_loss += swap_loss
 
-            swap_loss = lambda_function(10, epoch)*(loss_swap_domain + beta*loss_swap_spoof)
-            swap_loss.backward() 
-            opt_shared_spoof.step()
+            loss = swap_loss
+            loss.backward() 
+            # opt_shared_spoof.step()
             opt_domain_a_encoder.step()
             opt_domain_b_encoder.step()
             opt_domain_c_encoder.step()
-            opt_shared_spoof.zero_grad() 
+            # opt_shared_spoof.zero_grad() 
             opt_domain_a_encoder.zero_grad() 
             opt_domain_b_encoder.zero_grad()
             opt_domain_c_encoder.zero_grad()
@@ -459,10 +465,16 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             #     spoof_triplet_loss.backward()
             #     opt_shared_spoof.step()
             #     opt_shared_spoof.zero_grad()
-            
-            print("\r {}/{} domain_class_loss:{:.7f},  domain_grl_spoof_loss={:.7f}, domain_grl_content_loss={:.7f}, spoof_class_loss={:.4f}, spoof_grl_content_domain_loss={:.7f}, recon_loss = {:.7f}".format(
-                    i+1, len_dataloader, domain_class_loss.item(),  domain_grl_spoof_loss.item() , domain_grl_content_loss.item(), spoof_class_loss.item(), 
-                    spoof_grl_content_domain_loss.item(), recon_loss.item()), end = "")
+
+        #     print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, \
+        #             spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}".format(
+        #             i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item() , domain_grl_content_loss.item(), spoof_class_loss.item(), 
+        #             spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), recon_loss.item(),0 ), end = "")
+
+        # print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, \
+        #         e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_recon_loss = {:.5f}, e_depth_loss = {:.5f}".format(
+        #         i+1, n_epoch, e_domain_class_loss.item(), e_domain_grl_spoof_loss.item() , e_domain_grl_content_loss.item(), e_spoof_class_loss.item(), 
+        #         e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_recon_loss.item(), 0))
 
         shared_spoof.eval()
         spoof_classify.eval()
@@ -489,9 +501,11 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
                         correct += 1
         test_auc = roc_auc_score(ans, pred)
         _, test_hter = HTER(np.array(pred), np.array(ans))
+
         print('Final {} test auc = {}'.format(target_domain, test_auc))
         print('Final {} test acc = {}'.format(target_domain, correct/len(test_dataset)))
         print('Final {} test hter = {}'.format(target_domain, test_hter))
+
         plot_auc.append(test_auc)
         plot_acc.append(test_auc)
         plot_hter.append(test_hter)
@@ -499,20 +513,6 @@ def train(path='./', dataset_path='../', target_domain='oulu', number_folder='1'
             test_best_auc = test_auc
             test_best_acc = correct/len(test_dataset)
             test_best_hter = test_hter
-            torch.save(shared_spoof, shared_spoof_path)
-            torch.save(spoof_classify, spoof_classify_path)
-            torch.save(shared_content, shared_content_path)
-            torch.save(depth_map, depth_map_path)
-            torch.save(domain_a_encoder, domain1_encoder_path)
-            torch.save(domain_b_encoder, domain2_encoder_path)
-            torch.save(domain_c_encoder, domain3_encoder_path)
-            torch.save(domain_classify, domain_classify_path)
-            torch.save(decode, decoder_path)
-            print('{}: save model'.format(target_domain))
-
-        if test_auc > test_best_auc:
-            test_best_auc = test_auc
-            test_best_acc = correct/len(test_dataset)
             torch.save(shared_spoof, shared_spoof_path)
             torch.save(spoof_classify, spoof_classify_path)
             torch.save(shared_content, shared_content_path)
