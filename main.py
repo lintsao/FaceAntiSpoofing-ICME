@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # optimizer
     parser.add_argument('--lr', type=float, default=0.0003)
 
-    # # # # training configs
+    # training configs
     parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
     parser.add_argument('--batch_size', type=int, default=20)
