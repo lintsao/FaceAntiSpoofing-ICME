@@ -37,7 +37,7 @@ class spoof_classifier(nn.Module):
             # nn.Linear(512, 3),
             #nn.Sigmoid() # pred class prob
         )
-        self.class_criterion = AngularPenaltySMLoss(512, 3, loss_type='sphereface') # loss_type in ['arcface', 'sphereface', 'cosface']
+        self.class_criterion = AngularPenaltySMLoss(512, 3, loss_type='cosface') # loss_type in ['arcface', 'sphereface', 'cosface']
 
     def forward(self, x, labels, positive):
         x = self.shared_encoder_pred_class(x)

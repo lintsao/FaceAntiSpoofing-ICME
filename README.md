@@ -12,7 +12,7 @@ Test	    |  20	  |    360	    |     720	      |     720	      |   1800
 CASIA     | Users | Real access | Print attacks | Video attacks | Total
 --------- |:-----:|------------:| -------------:| ------------: |--------
 Training	|   20	|    60       |     120	      |     60        |    240 
-Test	    |   30	|    960	    |     180	      |     90	      |    360 
+Test	    |   30	|    90	      |     180	      |     90	      |    360 
 
 
 MSU       | Users | Real access | Print attacks | Video attacks | Total
@@ -38,3 +38,7 @@ You will get
 
 ### 2. Train model
 **FaceAntiSpoofing-WACV$ python3 main.py**
+
+### 3. Explainable AI (Lime)
+**FaceAntiSpoofing-WACV$ python3 explainableAI_lime.py**
+
