@@ -27,9 +27,9 @@ from scipy.interpolate import interp1d
 from utils import *
 from model import *
 from loss import *
-from dataset import *
+from dataset_acc import *
 
-def train(args):
+def train_acc(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")

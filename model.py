@@ -28,16 +28,32 @@ from loss import *
 
 """## Model"""
 
-class spoof_classifier(nn.Module):
+class spoof_classifier_acc(nn.Module): # 3 types: real, print, replay
     def __init__(self): # positive parameter means grl or not, True: not grl
-        super(spoof_classifier, self).__init__()
+        super(spoof_classifier_acc, self).__init__()
         self.shared_encoder_pred_class = nn.Sequential(
             nn.Linear(1000, 512),
             nn.ReLU(),
-            # nn.Linear(512, 3),
-            #nn.Sigmoid() # pred class prob
         )
         self.class_criterion = AngularPenaltySMLoss(512, 3, loss_type='cosface') # loss_type in ['arcface', 'sphereface', 'cosface']
+
+    def forward(self, x, labels, positive):
+        x = self.shared_encoder_pred_class(x)
+        if positive == True:
+            features, result = self.class_criterion(x, labels, True)
+            return features, result
+        else:
+            features = self.class_criterion(x, labels, False)
+        return features
+
+class spoof_classifier_auc(nn.Module): # 2 types: real, fake
+    def __init__(self): # positive parameter means grl or not, True: not grl
+        super(spoof_classifier_auc, self).__init__()
+        self.shared_encoder_pred_class = nn.Sequential(
+            nn.Linear(1000, 512),
+            nn.ReLU(),
+        )
+        self.class_criterion = AngularPenaltySMLoss(512, 2, loss_type='cosface') # loss_type in ['arcface', 'sphereface', 'cosface']
 
     def forward(self, x, labels, positive):
         x = self.shared_encoder_pred_class(x)
