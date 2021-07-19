@@ -7,7 +7,7 @@ from train_auc import *
 from train_binary import *
 from train_noContent import *
 from train_noContentGRL2Spoof import *
-
+from train_auc_no_depth import *
 def main(args):
     if args.type == 'auc':
         train_auc(args)
@@ -19,6 +19,8 @@ def main(args):
         train_noContent(args)
     elif args.type == 'noContentGRL2Spoof':
         train_noContentGRL2Spoof(args)
+    elif args.type == 'noDepth':
+        train_noDepth(args)
     else:
         warnings.warn("Please check your training type")
         sys.exit()
@@ -52,7 +54,7 @@ if __name__ == '__main__':
     # optimizer
     parser.add_argument('--lr', type=float, default=0.0003)
 
-    # # # # training configs
+    # training configs
     parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
     parser.add_argument('--batch_size', type=int, default=10)
