@@ -78,7 +78,6 @@ def train_auc(args):
     shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
     spoof_classify = spoof_classifier_auc().to(device)
     domain_classify = domain_classifier().to(device)
-    # decode = decoder().to(device)
     depth_map = depth_decoder().to(device)
     print("-------------------------------------------------- finish model --------------------------------------------------")
 
@@ -90,6 +89,7 @@ def train_auc(args):
     test_best_auc = 0.0
     test_best_acc = 0.0
     test_best_hter = 0.0
+    test_best_epoch = 0
 
     len_dataloader = min(len(domain1_loader), len(domain2_loader), len(domain3_loader))
 
@@ -100,7 +100,6 @@ def train_auc(args):
     opt_shared_spoof = optim.AdamW(shared_spoof.parameters(), lr = args.lr)
     opt_spoof_classify = optim.AdamW(spoof_classify.parameters(), lr = args.lr)
     opt_domain_classify = optim.AdamW(domain_classify.parameters(), lr = args.lr)
-    # opt_decode = optim.AdamW(decode.parameters(), lr = args.lr)
     opt_depth = optim.AdamW(depth_map.parameters(), lr = args.lr)
 
     opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=[30, 70, 90], gamma=0.3)
@@ -110,7 +109,6 @@ def train_auc(args):
     opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=[30, 70, 90], gamma=0.3)
     opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=[70, 90], gamma=0.3)
     opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=[30, 70, 90], gamma=0.3)
-    # opt_decode_scheduler = optim.lr_scheduler.MultiStepLR(opt_decode, milestones=[30, 70, 90], gamma=0.3)
     opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[30, 70, 90], gamma=0.3)
 
     softmax = nn.Softmax(dim=0)
@@ -135,6 +133,7 @@ def train_auc(args):
         print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_auc)))
         print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_acc))) 
         print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format(args.target_domain, str(test_best_hter))) 
+        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format(args.target_domain, str(test_best_epoch))) 
 
         e_domain_class_loss = 0.0 
         e_domain_grl_spoof_loss = 0.0 
@@ -155,7 +154,6 @@ def train_auc(args):
             shared_spoof.train()
             spoof_classify.train()
             domain_classify.train()
-            # decode.train()
             depth_map.train()
 
             ###Set iter loss###
@@ -302,10 +300,7 @@ def train_auc(args):
             print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
                     i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item(), domain_grl_content_loss.item(), spoof_class_loss.item(), 
                     spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), recon_loss, depth_loss, swap_loss), end = "")
-            # print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
-            #         i+1, len_dataloader, domain_class_loss, domain_grl_spoof_loss, domain_grl_content_loss, spoof_class_loss.item(), 
-            #         spoof_grl_content_loss.item(), spoof_grl_domain_loss, recon_loss, depth_loss, swap_loss), end = "")
-        
+
         opt_domain_a_scheduler.step()
         opt_domain_b_scheduler.step()
         opt_domain_c_scheduler.step()
@@ -321,9 +316,6 @@ def train_auc(args):
         print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_recon_loss = {:.5f}, e_depth_loss = {:.5f}, e_swap_loss = {:.5f}".format(
                 i+1, args.n_epoch, e_domain_class_loss.item(), e_domain_grl_spoof_loss.item(), e_domain_grl_content_loss.item(), e_spoof_class_loss.item(), 
                 e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_recon_loss, e_depth_loss, e_swap_loss))
-        # print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_recon_loss = {:.5f}, e_depth_loss = {:.5f}, e_swap_loss = {:.5f}".format(
-        #         i+1, args.n_epoch, e_domain_class_loss, e_domain_grl_spoof_loss, e_domain_grl_content_loss, e_spoof_class_loss.item(), 
-        #         e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss, e_recon_loss, e_depth_loss, e_swap_loss))
 
         shared_spoof.eval()
         spoof_classify.eval()
@@ -366,6 +358,7 @@ def train_auc(args):
             test_best_auc = test_auc
             test_best_acc = test_acc
             test_best_hter = test_hter
+            test_best_epoch = epoch
             torch.save(shared_spoof, shared_spoof_path)
             torch.save(spoof_classify, spoof_classify_path)
             torch.save(shared_content, shared_content_path)
@@ -374,5 +367,4 @@ def train_auc(args):
             torch.save(domain_b_encoder, domain2_encoder_path)
             torch.save(domain_c_encoder, domain3_encoder_path)
             torch.save(domain_classify, domain_classify_path)
-            # torch.save(decode, decoder_path)
             print('{}: save model'.format(args.target_domain))
