@@ -147,7 +147,7 @@ def train_auc(args):
         e_swap_loss = 0.0
         
         for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
-
+            torch.cuda.empty_cache()
             domain_a_encoder.train()
             domain_b_encoder.train()
             domain_c_encoder.train()
@@ -222,6 +222,7 @@ def train_auc(args):
 
             ###Step 2 : 讓Domain Classify GRL回spoof和content###
             #spoof部分
+
             spoof_domain_logit = softmax(domain_classify(spoof_feature))
             domain_grl_spoof_loss =  gamma*class_criterion_re(spoof_domain_logit, mixed_label_domain) 
             e_domain_grl_spoof_loss += domain_grl_spoof_loss
@@ -281,23 +282,24 @@ def train_auc(args):
             opt_domain_a_encoder.zero_grad() 
             opt_domain_b_encoder.zero_grad() 
             opt_domain_c_encoder.zero_grad()
+            torch.cuda.empty_cache()
 
             ###Step 5 : 訓練 depth###
-            content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
-            depth_recon = depth_map(content_feature)
+            # content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
+            # depth_recon = depth_map(content_feature)
 
-            err_sim1 = mse_loss(depth_recon, mixed_depth)
-            depth_loss = 0.01*err_sim1
-            e_depth_loss += depth_loss
+            # err_sim1 = mse_loss(depth_recon, mixed_depth)
+            # depth_loss = 0.01*err_sim1
+            # e_depth_loss += depth_loss
 
-            loss = depth_loss
-            loss.backward()
-            opt_shared_content.step()
-            opt_depth.step()
+            # loss = depth_loss
+            # loss.backward()
+            # opt_shared_content.step()
+            # opt_depth.step()
             
-            opt_shared_content.zero_grad()
-            opt_depth.zero_grad()
-            depth_map.eval()
+            # opt_shared_content.zero_grad()
+            # opt_depth.zero_grad()
+            # depth_map.eval()
 
             print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
                     i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item(), domain_grl_content_loss.item(), spoof_class_loss.item(), 
@@ -350,7 +352,7 @@ def train_auc(args):
                     pred.append(prob)
                     if label[j].item() == torch.argmax(softmax(features[j]), dim=0).item():
                         correct += 1
-        print(pred)
+        #print(pred)
         test_auc = roc_auc_score(ans, pred)
         test_acc = correct/len(test_dataset)
         _, test_hter = HTER(np.array(pred), np.array(ans))

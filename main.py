@@ -55,7 +55,7 @@ if __name__ == '__main__':
     # # # # training configs
     parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
-    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--batch_size', type=int, default=10)
     parser.add_argument('--batch_triplet', type=int, default=4) 
     parser.add_argument('--n_epoch', type=int, default=100)
 

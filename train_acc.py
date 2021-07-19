@@ -149,7 +149,7 @@ def train_acc(args):
         e_swap_loss = 0.0
         
         for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
-
+            torch.cuda.empty_cache()
             domain_a_encoder.train()
             domain_b_encoder.train()
             domain_c_encoder.train()
@@ -282,9 +282,10 @@ def train_acc(args):
             opt_domain_a_encoder.zero_grad() 
             opt_domain_b_encoder.zero_grad() 
             opt_domain_c_encoder.zero_grad()
-
+            
+            torch.cuda.empty_cache()
             ###Step 5 : 訓練 depth###
-            content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
+            #content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
             #depth_recon = depth_map(content_feature)
 
             #err_sim1 = mse_loss(depth_recon, mixed_depth)
@@ -539,6 +540,7 @@ def train_acc(args):
                     # #     pred.append(0)
                     # else:
                     #     pred.append(prob)
+                    #print(prob)
                     if label[j].item() == torch.argmax(features[j], dim=0).item():
                         correct += 1
         #print(pred)
