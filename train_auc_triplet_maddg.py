@@ -29,7 +29,7 @@ from model import *
 from loss import *
 from dataset_auc import *
 
-def train_auc(args):
+def train_auc_triplet_maddg(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:{}".format(args.gpu_id) if use_cuda else "cpu")
@@ -59,6 +59,18 @@ def train_auc(args):
     domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
     domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
     domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
+
+    domain1_real_loader = DataLoader(domain1_real_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain1_print_loader = DataLoader(domain1_print_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain1_replay_loader = DataLoader(domain1_replay_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain2_real_loader = DataLoader(domain2_real_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain2_print_loader = DataLoader(domain2_print_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain2_replay_loader = DataLoader(domain2_replay_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain3_real_loader = DataLoader(domain3_real_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain3_print_loader = DataLoader(domain3_print_dataset, batch_size = args.batch_triplet, shuffle = True)
+    domain3_replay_loader = DataLoader(domain3_replay_dataset, batch_size = args.batch_triplet, shuffle = True)
+
+    print("-------------------------------------------------- finish data loader --------------------------------------------------")
 
     domain_a_encoder = torchvision.models.resnet18(pretrained=True).to(device)
     domain_b_encoder = torchvision.models.resnet18(pretrained=True).to(device)
@@ -105,7 +117,7 @@ def train_auc(args):
     class_criterion_re = MSE()
     mse_loss = MSE()
     # simse_loss = SIMSE()
-    # triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
+    triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
 
     #plot acc
     plot_auc = []
@@ -133,6 +145,7 @@ def train_auc(args):
         e_recon_loss = 0.0 
         e_depth_loss = 0.0
         e_swap_loss = 0.0 
+        e_triplet_loss = 0.0 
         
         for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
 
@@ -152,7 +165,9 @@ def train_auc(args):
             spoof_class_loss = 0.0 
             spoof_grl_content_loss = 0.0 
             spoof_grl_domain_loss = 0.0 
+            recon_loss = 0.0 
             depth_loss = 0.0
+            swap_loss = 0.0
 
             ###Set data###
             len_data = min(len(d1_data), len(d2_data), len(d3_data))
@@ -283,9 +298,42 @@ def train_auc(args):
             opt_depth.zero_grad()
             depth_map.eval()
 
-            print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, depth_loss = {:.5f}".format(
+            ''' triplet loss '''
+            step_triplet_loss = 0.0
+            for k, ((d1_real, _, d1_real_label), (d1_print, _, d1_print_label), (d1_replay, _, d1_replay_label), 
+                    (d2_real, _, d2_real_label), (d2_print, _, d2_print_label), (d2_replay, _, d2_replay_label), 
+                    (d3_real, _, d3_real_label), (d3_print, _, d3_print_label), (d3_replay, _, d3_replay_label)) in enumerate( \
+                zip(domain1_real_loader, domain1_print_loader, domain1_replay_loader, \
+                    domain2_real_loader, domain2_print_loader, domain2_replay_loader, \
+                    domain3_real_loader, domain3_print_loader, domain3_replay_loader \
+                    )):
+                # print(len(d1_real), len(d1_print), len(d1_replay), len(d1_real), len(d1_print), len(d1_replay), len(d1_real), len(d1_print), len(d1_replay))
+                data_len = min(len(d1_real), len(d1_print), len(d1_replay), len(d1_real), len(d1_print), len(d1_replay), len(d1_real), len(d1_print), len(d1_replay))
+                mixed_data = torch.cat([d1_real[:data_len], d1_print[:data_len], d1_replay[:data_len], 
+                                        d2_real[:data_len], d2_print[:data_len], d2_replay[:data_len], 
+                                        d3_real[:data_len], d3_print[:data_len], d3_replay[:data_len]], dim = 0).to(device)
+                spoof_feature = shared_spoof(mixed_data)
+                d1_real = spoof_feature[:data_len]
+                d1_print = spoof_feature[data_len:data_len*2]
+                d1_replay = spoof_feature[data_len*2:data_len*3]
+                d2_real = spoof_feature[data_len*3:data_len*4]
+                d2_print = spoof_feature[data_len*4:data_len*5]
+                d2_replay = spoof_feature[data_len*5:data_len*6]
+                d3_real = spoof_feature[data_len*6:data_len*7]
+                d3_print = spoof_feature[data_len*7:data_len*8]
+                d3_replay = spoof_feature[data_len*8:]
+                spoof_triplet_loss = sample_triplet_MADDG(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print, d2_replay, d3_real, d3_print, d3_replay)
+                step_triplet_loss += spoof_triplet_loss
+            
+            loss = 0.1*step_triplet_loss
+            e_triplet_loss += step_triplet_loss
+            loss.backward()
+            opt_shared_spoof.step()
+            opt_shared_spoof.zero_grad()
+
+            print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, depth_loss = {:.5f}, triplet_loss = {:.5f}".format(
                     i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item(), domain_grl_content_loss.item(), spoof_class_loss.item(), 
-                    spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), depth_loss), end = "")
+                    spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), depth_loss, step_triplet_loss.item()), end = "")
 
         opt_domain_a_scheduler.step()
         opt_domain_b_scheduler.step()
@@ -298,9 +346,9 @@ def train_auc(args):
 
         print("{} lr: {}".format(epoch, opt_spoof_classify_scheduler.get_last_lr()[0]))
 
-        print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_depth_loss = {:.5f}".format(
+        print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_depth_loss = {:.5f}, e_triplet_loss = {:.5f}".format(
                 i+1, args.n_epoch, e_domain_class_loss.item(), e_domain_grl_spoof_loss.item(), e_domain_grl_content_loss.item(), e_spoof_class_loss.item(), 
-                e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_depth_loss))
+                e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_depth_loss, e_triplet_loss.item()))
 
         shared_spoof.eval()
         spoof_classify.eval()

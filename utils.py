@@ -150,7 +150,7 @@ def HTER(y, y_pred):
     cur_HTER_valid = get_HTER_at_thr(y, y_pred, threshold)
     return ACC_threshold, cur_HTER_valid
 
-def sample_triplet(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print, d2_replay, d3_real, d3_print, d3_replay):
+def sample_triplet_MADDG(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print, d2_replay, d3_real, d3_print, d3_replay):
     output_loss = 0.0
     anchor_domain = list(np.random.choice(a=[1, 2, 3], size=6, replace=True, p=None))
     positive_domain = []
@@ -160,7 +160,7 @@ def sample_triplet(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print
         domain_choice.remove(anchor_domain[index])
         positive_domain.append(int(np.random.choice(a=domain_choice, size=1, replace=True, p=None)))
         negative_domain.append(int(np.random.choice(a=domain_choice, size=1, replace=True, p=None)))
-        print(anchor_domain[index], positive_domain[index], negative_domain[index])
+        # print(anchor_domain[index], positive_domain[index], negative_domain[index])
         if index == 0:    # rrp
             if anchor_domain[index] == 1:
                 anchor = d1_real
@@ -276,7 +276,137 @@ def sample_triplet(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print
             else:
                 negative = d3_print
         # print((anchor.shape, positive.shape, negative.shape))
-        print(triplet_loss(anchor, positive, negative))    
+        # print(triplet_loss(anchor, positive, negative))    
+        output_loss += triplet_loss(anchor, positive, negative)
+    return output_loss
+
+def sample_triplet_SSDG(triplet_loss, d1_real, d1_print, d1_replay, d2_real, d2_print, d2_replay, d3_real, d3_print, d3_replay):
+    output_loss = 0.0
+    anchor_domain = list(np.random.choice(a=[1, 2, 3], size=6, replace=True, p=None))
+    positive_domain = []
+    negative_domain = []
+    for index in range(len(anchor_domain)):
+        domain_choice = [1, 2, 3]
+        domain_choice.remove(anchor_domain[index])
+        positive_domain.append(int(np.random.choice(a=domain_choice, size=1, replace=True, p=None)))
+        negative_domain.append(int(np.random.choice(a=domain_choice, size=1, replace=True, p=None)))
+        # print(anchor_domain[index], positive_domain[index], negative_domain[index])
+        if index == 0:    # rrp
+            if anchor_domain[index] == 1:
+                anchor = d1_real
+            elif anchor_domain[index] == 2:
+                anchor = d2_real
+            else:
+                anchor = d3_real
+            if positive_domain[index] == 1:
+                positive = d1_real
+            elif positive_domain[index] == 2:
+                positive = d2_real
+            else:
+                positive = d3_real
+            if negative_domain[index] == 1:
+                negative = d1_print
+            elif negative_domain[index] == 2:
+                negative = d2_print
+            else:
+                negative = d3_print          
+        elif index == 1:  # ppR
+            if anchor_domain[index] == 1:
+                anchor = d1_print
+            elif anchor_domain[index] == 2:
+                anchor = d2_print
+            else:
+                anchor = d3_print
+            if positive_domain[index] == 1:
+                positive = d1_print
+            elif positive_domain[index] == 2:
+                positive = d2_print
+            else:
+                positive = d3_print
+            if negative_domain[index] == 1:
+                negative = d1_replay
+            elif negative_domain[index] == 2:
+                negative = d2_replay
+            else:
+                negative = d3_replay 
+        elif index == 2:  # RRr
+            if anchor_domain[index] == 1:
+                anchor = d1_replay
+            elif anchor_domain[index] == 2:
+                anchor = d2_replay
+            else:
+                anchor = d3_replay
+            if positive_domain[index] == 1:
+                positive = d1_replay
+            elif positive_domain[index] == 2:
+                positive = d2_replay
+            else:
+                positive = d3_replay
+            if negative_domain[index] == 1:
+                negative = d1_real
+            elif negative_domain[index] == 2:
+                negative = d2_real
+            else:
+                negative = d3_real 
+        elif index == 3:  # rrR
+            if anchor_domain[index] == 1:
+                anchor = d1_real
+            elif anchor_domain[index] == 2:
+                anchor = d2_real
+            else:
+                anchor = d3_real
+            if positive_domain[index] == 1:
+                positive = d1_real
+            elif positive_domain[index] == 2:
+                positive = d2_real
+            else:
+                positive = d3_real
+            if negative_domain[index] == 1:
+                negative = d1_replay
+            elif negative_domain[index] == 2:
+                negative = d2_replay
+            else:
+                negative = d3_replay
+        elif index == 4:  # ppr
+            if anchor_domain[index] == 1:
+                anchor = d1_print
+            elif anchor_domain[index] == 2:
+                anchor = d2_print
+            else:
+                anchor = d3_print
+            if positive_domain[index] == 1:
+                positive = d1_print
+            elif positive_domain[index] == 2:
+                positive = d2_print
+            else:
+                positive = d3_print
+            if negative_domain[index] == 1:
+                negative = d1_real
+            elif negative_domain[index] == 2:
+                negative = d2_real
+            else:
+                negative = d3_real
+        elif index == 5:  # RRp
+            if anchor_domain[index] == 1:
+                anchor = d1_replay
+            elif anchor_domain[index] == 2:
+                anchor = d2_replay
+            else:
+                anchor = d3_replay
+            if positive_domain[index] == 1:
+                positive = d1_replay
+            elif positive_domain[index] == 2:
+                positive = d2_replay
+            else:
+                positive = d3_replay
+            if negative_domain[index] == 1:
+                negative = d1_print
+            elif negative_domain[index] == 2:
+                negative = d2_print
+            else:
+                negative = d3_print
+        # print((anchor.shape, positive.shape, negative.shape))
+        # print(triplet_loss(anchor, positive, negative))    
         output_loss += triplet_loss(anchor, positive, negative)
     return output_loss
 
