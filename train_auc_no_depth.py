@@ -271,7 +271,6 @@ def train_noDepth(args):
             e_spoof_grl_domain_loss += spoof_grl_domain_loss 
 
             loss = spoof_grl_content_loss + spoof_grl_domain_loss
-            loss = spoof_grl_content_loss
             loss.backward()
             opt_shared_content.step()
             opt_domain_a_encoder.step()
