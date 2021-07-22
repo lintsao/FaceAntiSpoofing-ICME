@@ -29,7 +29,7 @@ from model import *
 from loss import *
 from dataset_auc import *
 
-def train_auc_triplet_maddg(args):
+def train_auc_triplet_ours(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:{}".format(args.gpu_id) if use_cuda else "cpu")

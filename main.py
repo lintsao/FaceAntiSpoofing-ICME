@@ -8,7 +8,7 @@ from train_binary import *
 from train_noContent import *
 from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
-from train_auc_triplet_maddg import *
+from train_auc_triplet_ours import *
 from train_auc_triplet_ssdg import *
 
 
@@ -25,8 +25,8 @@ def main(args):
         train_noContentGRL2Spoof(args)
     elif args.type == 'noDepth':
         train_noDepth(args)
-    elif args.type == 'aucTripletMADDG':
-        train_auc_triplet_maddg(args)
+    elif args.type == 'aucTripletOurs':
+        train_auc_triplet_ours(args)
     elif args.type == 'aucTripletSSDG':
         train_auc_triplet_ssdg(args)
     else:
