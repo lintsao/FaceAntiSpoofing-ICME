@@ -72,14 +72,17 @@ def train_auc_triplet_maddg(args):
 
     print("-------------------------------------------------- finish data loader --------------------------------------------------")
 
-    domain_a_encoder = torchvision.models.resnet18(pretrained=True).to(device)
-    domain_b_encoder = torchvision.models.resnet18(pretrained=True).to(device)
-    domain_c_encoder = torchvision.models.resnet18(pretrained=True).to(device)
-    shared_content = torchvision.models.resnet18(pretrained=True).to(device)
-    shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
-    spoof_classify = spoof_classifier_auc().to(device)
-    domain_classify = domain_classifier().to(device)
-    depth_map = depth_decoder().to(device)
+    # domain_a_encoder = torchvision.models.resnet18(pretrained=True).to(device)
+    # domain_b_encoder = torchvision.models.resnet18(pretrained=True).to(device)
+    # domain_c_encoder = torchvision.models.resnet18(pretrained=True).to(device)
+    # shared_content = torchvision.models.resnet18(pretrained=True).to(device)
+    # shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
+    # spoof_classify = spoof_classifier_auc().to(device)
+    # domain_classify = domain_classifier().to(device)
+    # depth_map = depth_decoder().to(device)
+    domain_a_encoder, domain_b_encoder, domain_c_encoder, shared_content, shared_spoof, spoof_classify, \
+    domain_classify, depth_map = load_model_path(args.path, args.target_domain, args.load_folder, args.scratch, device)
+
     print("-------------------------------------------------- finish model --------------------------------------------------")
 
     """## Training"""

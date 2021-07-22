@@ -9,6 +9,7 @@ from train_noContent import *
 from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
 from train_auc_triplet_maddg import *
+from train_auc_triplet_ssdg import *
 
 
 def main(args):
@@ -57,6 +58,8 @@ if __name__ == '__main__':
     parser.add_argument('--number_folder', type=str, default='0')
    
     # model
+    parser.add_argument('--scratch', type=str, default='True')
+    parser.add_argument('--load_folder', type=str, default='0')
 
     # optimizer
     parser.add_argument('--lr', type=float, default=0.0003)
