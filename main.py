@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
-    parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_224')
+    parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_256')
     parser.add_argument('--type', type=str, default='auc')
     parser.add_argument('--gpu_id', type=str, default='0')
 
