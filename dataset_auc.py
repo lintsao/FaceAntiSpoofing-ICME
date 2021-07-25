@@ -52,7 +52,9 @@ class Oulu_dataset(Dataset):
         self.transform = transform
         self.transform_depth = transform_depth
         self.attack = attack
+        print(self.common_path)
         self.filename = sorted(os.listdir(self.common_path))
+        #print(self.filename)
         self.pathname = [number for number in self.filename if 'jpg' in number and 'depth' not in number and '1_3_11_5' not in number]
         if self.mode == 'train':
             if self.attack == "print":
@@ -397,6 +399,7 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         transforms.Normalize([0.0,],[1.0,])
     ])
 
+<<<<<<< HEAD
     ### test dataset ###
     msu_train_real_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map/MSU/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_train_print_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map/MSU/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
@@ -425,6 +428,36 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     casia_train_print_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='print')
     casia_train_replay_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='replay')
     casia_test_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map/CASIA_faceAntisp/test_release/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth)
+=======
+    ### test dataset ###  
+    msu_train_real_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
+    msu_train_print_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    msu_train_replay_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    msu_test_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
+    msu_test_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    msu_test_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+
+    idiap_train_real_dataset = Idiap_dataset(os.path.join(path, 'pr_depth_map_224/ReplayAttack/replayattack-train/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
+    idiap_train_print_fixed_dataset = Idiap_dataset(os.path.join(path, 'pr_depth_map_224/ReplayAttack/replayattack-train/attack/fixed/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_train_replay_fixed_dataset = Idiap_dataset(os.path.join(path, 'pr_depth_map_224/ReplayAttack/replayattack-train/attack/fixed/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_train_print_hand_dataset = Idiap_dataset(os.path.join(path, 'pr_depth_map_224/ReplayAttack/replayattack-train/attack/hand/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_train_replay_hand_dataset = Idiap_dataset(os.path.join(path, 'pr_depth_map_224/ReplayAttack/replayattack-train/attack/hand/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_test_real_dataset = Idiap_dataset(os.path.join(path, 'Replay_Attack/replayattack-test/test/real/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
+    idiap_test_print_fixed_dataset = Idiap_dataset(os.path.join(path, 'Replay_Attack/replayattack-test/test/attack/fixed/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_test_replay_fixed_dataset = Idiap_dataset(os.path.join(path, 'Replay_Attack/replayattack-test/test/attack/fixed/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_test_print_hand_dataset = Idiap_dataset(os.path.join(path, 'Replay_Attack/replayattack-test/test/attack/hand/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_test_replay_hand_dataset = Idiap_dataset(os.path.join(path, 'Replay_Attack/replayattack-test/test/attack/hand/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+
+    oulu_train_real_dataset = Oulu_dataset(os.path.join(path, 'pr_depth_map_224/Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='real')
+    oulu_train_print_dataset = Oulu_dataset(os.path.join(path, 'pr_depth_map_224/Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    oulu_train_replay_dataset = Oulu_dataset(os.path.join(path, 'pr_depth_map_224/Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    oulu_test_dataset = Oulu_dataset(os.path.join(path, 'Oulu_NPU/Test_files/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth)
+
+    casia_train_real_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map_224/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='real')
+    casia_train_print_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map_224/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='print')
+    casia_train_replay_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map_224/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='replay')
+    casia_test_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/test_release/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth)
+>>>>>>> e650a1c323771fe49b57804a24fd9cb055915fc1
 
 
     if target_domain == 'msu': 

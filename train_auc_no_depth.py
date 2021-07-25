@@ -101,7 +101,7 @@ def train_noDepth(args):
     opt_spoof_classify = optim.AdamW(spoof_classify.parameters(), lr = args.lr)
     opt_domain_classify = optim.AdamW(domain_classify.parameters(), lr = args.lr)
     # opt_decode = optim.AdamW(decode.parameters(), lr = args.lr)
-    opt_depth = optim.AdamW(depth_map.parameters(), lr = args.lr)
+    #opt_depth = optim.AdamW(depth_map.parameters(), lr = args.lr)
 
     opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=[30, 70, 90], gamma=0.3)
     opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=[30, 70, 90], gamma=0.3)
@@ -111,7 +111,7 @@ def train_noDepth(args):
     opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=[70, 90], gamma=0.3)
     opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=[30, 70, 90], gamma=0.3)
     # opt_decode_scheduler = optim.lr_scheduler.MultiStepLR(opt_decode, milestones=[30, 70, 90], gamma=0.3)
-    opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[30, 70, 90], gamma=0.3)
+    # opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[30, 70, 90], gamma=0.3)
 
     softmax = nn.Softmax(dim=0)
     class_criterion = nn.CrossEntropyLoss()
@@ -147,7 +147,7 @@ def train_noDepth(args):
         e_swap_loss = 0.0
         
         for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
-
+            torch.cuda.empty_cache()
             domain_a_encoder.train()
             domain_b_encoder.train()
             domain_c_encoder.train()
@@ -253,6 +253,7 @@ def train_noDepth(args):
             opt_shared_spoof.zero_grad() 
             opt_spoof_classify.zero_grad() 
             spoof_classify.eval()
+            torch.cuda.empty_cache()
 
             ###Step 4 : 讓Spoof Classify GRL回content和domain###
             content_feature = shared_content(mixed_data) 
@@ -297,7 +298,7 @@ def train_noDepth(args):
             
             # opt_shared_content.zero_grad()
             # opt_depth.zero_grad()
-            depth_map.eval()
+            # depth_map.eval()
 
             print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
                     i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item(), domain_grl_content_loss.item(), spoof_class_loss.item(), 
@@ -313,7 +314,7 @@ def train_noDepth(args):
         opt_shared_spoof_scheduler.step()
         opt_spoof_classify_scheduler.step()
         opt_domain_classify_scheduler.step()
-        opt_depth_scheduler.step()
+        # opt_depth_scheduler.step()
         # opt_decode_scheduler.step()
 
         print("{} lr: {}".format(epoch, opt_spoof_classify_scheduler.get_last_lr()[0]))
@@ -335,7 +336,7 @@ def train_noDepth(args):
                 print("\r", batch_idx, '/', len(test_loader), end = "")
                 im, label = data
                 im, label = im.to(device), label.to(device)
-                im = im.expand(im.data.shape[0], 3, 112, 112)
+                im = im.expand(im.data.shape[0], 3, 256, 256)
 
                 result = shared_spoof(im)
                 features, loss = spoof_classify(result, label, True)

@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
-    parser.add_argument('--dataset_path', type=str, default='./dataset')
+    parser.add_argument('--dataset_path', type=str, default='./dataset_224')
     parser.add_argument('--type', type=str, default='auc')
     parser.add_argument('--gpu_id', type=str, default='0')
 
@@ -52,12 +52,12 @@ if __name__ == '__main__':
     # model
 
     # optimizer
-    parser.add_argument('--lr', type=float, default=0.0003)
+    parser.add_argument('--lr', type=float, default=0.0001)
 
     # training configs
-    parser.add_argument('--img_size', type=int, default=256) 
+    parser.add_argument('--img_size', type=int, default=224) 
     parser.add_argument('--depth_size', type=int, default=64) 
-    parser.add_argument('--batch_size', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=3)
     parser.add_argument('--batch_triplet', type=int, default=4) 
     parser.add_argument('--n_epoch', type=int, default=100)
 
