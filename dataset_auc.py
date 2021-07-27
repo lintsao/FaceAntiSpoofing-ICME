@@ -52,9 +52,7 @@ class Oulu_dataset(Dataset):
         self.transform = transform
         self.transform_depth = transform_depth
         self.attack = attack
-        print(self.common_path)
         self.filename = sorted(os.listdir(self.common_path))
-        #print(self.filename)
         self.pathname = [number for number in self.filename if 'jpg' in number and 'depth' not in number and '1_3_11_5' not in number]
         if self.mode == 'train':
             if self.attack == "print":
@@ -78,17 +76,23 @@ class Oulu_dataset(Dataset):
         if self.mode == 'train':
             if self.pathname[index].split("_")[4][0] == '1': #real pic
                 label = int(0)
+                triplet_label = int(0)
             elif self.pathname[index].split("_")[4][0] == '2' or self.pathname[index].split("_")[4][0] == '3': #print12
                 label = int(1)
+                triplet_label = int(1)
             elif self.pathname[index].split("_")[4][0] == '4' or self.pathname[index].split("_")[4][0] == '5': #replay12
                 label = int(1)
+                triplet_label = int(2)
         else: #test,dev
             if self.pathname[index].split("_")[4][0] == '1': #real pic
                 label = int(0)
+                triplet_label = int(0)
             elif self.pathname[index].split("_")[4][0] == '2' or self.pathname[index].split("_")[4][0] == '3': #print12
                 label = int(1)
+                triplet_label = int(1)
             elif self.pathname[index].split("_")[4][0] == '4' or self.pathname[index].split("_")[4][0] == '5': #replay12
                 label = int(1)
+                triplet_label = int(2)
             im = Image.open(pic_path)                 
             if self.transform is not None:
                 im = self.transform(im)
@@ -166,23 +170,29 @@ class MSU_dataset(Dataset):
         if self.mode == 'train':
             if 'real' in self.common_path:
                     label = int(0)
+                    triplet_label = int(0)
             else: #attack
                 if 'print' in pic: #print
                     label = int(1)
+                    triplet_label = int(1)
                 else: #replay
-                    label = int(1)   
+                    label = int(1)
+                    triplet_label = int(2)
         else:
             if 'real' in self.common_path:
                     label = int(0)
+                    triplet_label = int(0)
             else: #attack
                 if 'print' in pic: #print
                     label = int(1)
+                    triplet_label = int(1)
                 else: #replay
-                    label = int(1) 
+                    label = int(1)
+                    triplet_label = int(2)
             im = Image.open(pic_path)                 
             if self.transform is not None:
                 im = self.transform(im)
-            return im, torch.tensor(label, dtype=torch.long)              
+            return im, torch.tensor(label, dtype=torch.long)        
         
         im = Image.open(pic_path)                 
         if self.transform is not None:
@@ -244,23 +254,29 @@ class Idiap_dataset(Dataset):
         if self.mode == 'train':
             if 'real' in self.common_path:
                     label = int(0)
+                    triplet_label = int(0)
             else: #attack
                 if 'print' in pic: #print
                     label = int(1)
+                    triplet_label = int(1)
                 else: #replay
-                    label = int(1)      
+                    label = int(1)
+                    triplet_label = int(2)
         else:
             if 'real' in self.common_path:
                     label = int(0)
+                    triplet_label = int(0)
             else: #attack
                 if 'print' in pic: #print
                     label = int(1)
+                    triplet_label = int(1)
                 else: #replay
                     label = int(1)
+                    triplet_label = int(2)
             im = Image.open(pic_path)                
             if self.transform is not None:
                 im = self.transform(im)
-            return im, torch.tensor(label, dtype=torch.long)          
+            return im, torch.tensor(label, dtype=torch.long)       
             
         im = Image.open(pic_path)                
         if self.transform is not None:
@@ -326,32 +342,44 @@ class Casia_dataset(Dataset):
             if 'HR' in self.pathname[index]:
                 if self.pathname[index].split("_")[3][0] == '1': #real pic
                     label = int(0)
+                    triplet_label = int(0)
                 elif self.pathname[index].split("_")[3][0] == '2' or self.pathname[index].split("_")[3][0] == '3': #print
                     label = int(1)
+                    triplet_label = int(1)
                 elif self.pathname[index].split("_")[3][0] == '4': #replay
                     label = int(1)
+                    triplet_label = int(2)
             else:
                 if self.pathname[index].split("_")[2][0] == '1' or self.pathname[index].split("_")[2][0] == '2': #real pic
                     label = int(0)
+                    triplet_label = int(0)
                 elif self.pathname[index].split("_")[2][0] == '3' or self.pathname[index].split("_")[2][0] == '4' or self.pathname[index].split("_")[2][0] == '5' or self.pathname[index].split("_")[2][0] == '6': #print
                     label = int(1)
+                    triplet_label = int(1)
                 elif self.pathname[index].split("_")[2][0] == '7' or self.pathname[index].split("_")[2][0] == '8': #replay
                     label = int(1)
+                    triplet_label = int(2)
         else: #test,dev
             if 'HR' in self.pathname[index]: # use acc
                 if self.pathname[index].split("_")[3][0] == '1': #real pic
                     label = int(0)
+                    triplet_label = int(0)
                 elif self.pathname[index].split("_")[3][0] == '2' or self.pathname[index].split("_")[3][0] == '3': #print
                     label = int(1)
+                    triplet_label = int(1)
                 elif self.pathname[index].split("_")[3][0] == '4': #replay
                     label = int(1)
+                    triplet_label = int(2)
             else:
                 if self.pathname[index].split("_")[2][0] == '1' or self.pathname[index].split("_")[2][0] == '2': #real pic
                     label = int(0)
+                    triplet_label = int(0)
                 elif self.pathname[index].split("_")[2][0] == '3' or self.pathname[index].split("_")[2][0] == '4' or self.pathname[index].split("_")[2][0] == '5' or self.pathname[index].split("_")[2][0] == '6': #print
                     label = int(1)
+                    triplet_label = int(1)
                 elif self.pathname[index].split("_")[2][0] == '7' or self.pathname[index].split("_")[2][0] == '8': #replay
                     label = int(1)
+                    triplet_label = int(2)
             im = Image.open(pic_path)                
             if self.transform is not None:
                 im = self.transform(im)
@@ -430,10 +458,11 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     casia_test_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map/CASIA_faceAntisp/test_release/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth)
 =======
     ### test dataset ###  
-    msu_train_real_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
-    msu_train_print_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
-    msu_train_replay_dataset = MSU_dataset(os.path.join(path, 'pr_depth_map_224/MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    msu_train_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
+    msu_train_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    msu_train_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
     msu_test_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
+<<<<<<< HEAD
     msu_test_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_test_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
 
@@ -458,6 +487,31 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     casia_train_replay_dataset = Casia_dataset(os.path.join(path, 'pr_depth_map_224/CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='replay')
     casia_test_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/test_release/crop_frame/crop_face_224'), 'test', transform = transform, transform_depth = transform_depth)
 >>>>>>> e650a1c323771fe49b57804a24fd9cb055915fc1
+=======
+    msu_test_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    msu_test_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+
+    idiap_train_real_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-train/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
+    idiap_train_print_fixed_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-train/attack/fixed/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_train_replay_fixed_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-train/attack/fixed/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_train_print_hand_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-train/attack/hand/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_train_replay_hand_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-train/attack/hand/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_test_real_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-test/real/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
+    idiap_test_print_fixed_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-test/attack/fixed/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_test_replay_fixed_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-test/attack/fixed/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+    idiap_test_print_hand_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-test/attack/hand/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
+    idiap_test_replay_hand_dataset = Idiap_dataset(os.path.join(path, 'ReplayAttack/replayattack-test/attack/hand/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
+
+    oulu_train_real_dataset = Oulu_dataset(os.path.join(path, 'Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='real')
+    oulu_train_print_dataset = Oulu_dataset(os.path.join(path, 'Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    oulu_train_replay_dataset = Oulu_dataset(os.path.join(path, 'Oulu_NPU/Train_files/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+    oulu_test_dataset = Oulu_dataset(os.path.join(path, 'Oulu_NPU/Test_files/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth)
+
+    casia_train_real_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='real')
+    casia_train_print_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='print')
+    casia_train_replay_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='replay')
+    casia_test_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/test_release/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth)
+>>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
 
 
     if target_domain == 'msu': 

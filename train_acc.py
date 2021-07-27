@@ -32,7 +32,7 @@ from dataset_acc import *
 def train_acc(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda:0" if use_cuda else "cpu")
+    device = torch.device("cuda:{}".format(args.gpu_id) if use_cuda else "cpu")
     print("finish initialization, device: {}".format(device))
     
     # target:MSU    => 1: i, 2: o, 3: c
@@ -76,7 +76,7 @@ def train_acc(args):
     domain_c_encoder = torchvision.models.resnet18(pretrained=True).to(device)
     shared_content = torchvision.models.resnet18(pretrained=True).to(device)
     shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
-    spoof_classify = spoof_classifier().to(device)
+    spoof_classify = spoof_classifier_acc().to(device)
     domain_classify = domain_classifier().to(device)
     # decode = decoder().to(device)
     depth_map = depth_decoder().to(device)
@@ -87,9 +87,8 @@ def train_acc(args):
     alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.001, 0.0001  # beta: spoof, gamma: grl
     #alpha for spoofing  classify MSE to content and domain
     #gamma for else 
-    test_best_auc = 0.0
     test_best_acc = 0.0
-    test_best_hter = 0.0
+    test_best_epoch = 0
 
     len_dataloader = min(len(domain1_loader), len(domain2_loader), len(domain3_loader))
 
@@ -100,30 +99,21 @@ def train_acc(args):
     opt_shared_spoof = optim.AdamW(shared_spoof.parameters(), lr = args.lr)
     opt_spoof_classify = optim.AdamW(spoof_classify.parameters(), lr = args.lr)
     opt_domain_classify = optim.AdamW(domain_classify.parameters(), lr = args.lr)
-    # opt_decode = optim.AdamW(decode.parameters(), lr = args.lr)
     opt_depth = optim.AdamW(depth_map.parameters(), lr = args.lr)
 
-    opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=[30, 70, 90], gamma=0.3)
-    opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=[30, 70, 90], gamma=0.3)
-    opt_domain_c_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_c_encoder, milestones=[30, 70, 90], gamma=0.3)
-    opt_shared_content_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_content, milestones=[30, 70, 90], gamma=0.3)
-    opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=[30, 70, 90], gamma=0.3)
-    opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=[70, 90], gamma=0.3)
-    opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=[30, 70, 90], gamma=0.3)
-    # opt_decode_scheduler = optim.lr_scheduler.MultiStepLR(opt_decode, milestones=[30, 70, 90], gamma=0.3)
-    opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[30, 70, 90], gamma=0.3)
+    opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_domain_c_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_c_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_shared_content_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_content, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
 
     softmax = nn.Softmax(dim=0)
     class_criterion = nn.CrossEntropyLoss()
     class_criterion_re = MSE()
     mse_loss = MSE()
-    # simse_loss = SIMSE()
-    # triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
-
-    #plot acc
-    plot_auc = []
-    plot_acc = []
-    plot_hter = []
 
     print('epoch num = ', args.n_epoch, ', iter num = ', len_dataloader)
 
@@ -134,9 +124,8 @@ def train_acc(args):
         domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
         print(device)
         print('-------------------------------------------------- epoch = {} --------------------------------------------------'.format(str(epoch))) 
-        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_auc)))
         print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_acc))) 
-        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format(args.target_domain, str(test_best_hter))) 
+        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format(args.target_domain, str(test_best_epoch))) 
 
         e_domain_class_loss = 0.0 
         e_domain_grl_spoof_loss = 0.0 
@@ -157,7 +146,6 @@ def train_acc(args):
             shared_spoof.train()
             spoof_classify.train()
             domain_classify.train()
-            # decode.train()
             depth_map.train()
 
             ###Set iter loss###
@@ -288,11 +276,17 @@ def train_acc(args):
             #content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
             #depth_recon = depth_map(content_feature)
 
+<<<<<<< HEAD
             #err_sim1 = mse_loss(depth_recon, mixed_depth)
             # err_sim2 = simse_loss(depth_recon, mixed_depth)
             # err = 0.01*err_sim1 + 0.01*err_sim2
             #depth_loss = 0.01*err_sim1
             #e_depth_loss += depth_loss
+=======
+            err_sim1 = mse_loss(depth_recon, mixed_depth)
+            depth_loss = 0.01*err_sim1
+            e_depth_loss += depth_loss
+>>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
 
             # loss = depth_loss
             # loss.backward()
@@ -302,6 +296,7 @@ def train_acc(args):
             # opt_depth.zero_grad()
             # depth_map.eval()
 
+<<<<<<< HEAD
             ###Step 6 : Recon###
             # spoof_feature = shared_spoof(mixed_data) 
             # content_feature = shared_content(mixed_data) 
@@ -448,6 +443,8 @@ def train_acc(args):
             # domain3_print_loader = DataLoader(domain3_print_dataset, batch_size = batch_size, shuffle = True)
             # domain3_replay_loader = DataLoader(domain3_replay_dataset, batch_size = batch_size, shuffle = True)
 
+=======
+>>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
             # ''' triplet loss '''
             # for k, ((d1_real, _, d1_real_label), (d1_print, _, d1_print_label), (d1_replay, _, d1_replay_label), 
             #         (d2_real, _, d2_real_label), (d2_print, _, d2_print_label), (d2_replay, _, d2_replay_label), 
@@ -478,13 +475,9 @@ def train_acc(args):
             #     opt_shared_spoof.step()
             #     opt_shared_spoof.zero_grad()
 
-            print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
+            print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, depth_loss = {:.5f}".format(
                     i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item() , domain_grl_content_loss.item(), spoof_class_loss.item(), 
-                    spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), recon_loss, depth_loss, swap_loss), end = "")
-
-            # print("\r {}/{} domain_class_loss:{:.5f}, domain_grl_spoof_loss={:.5f}, domain_grl_content_loss={:.5f}, spoof_class_loss={:.4f}, spoof_grl_content_loss={:.5f}, spoof_grl_domain_loss={:.5f}, recon_loss = {:.5f}, depth_loss = {:.5f}, swap_loss = {:.5f}".format(
-            #         i+1, len_dataloader, domain_class_loss.item(), domain_grl_spoof_loss.item() , domain_grl_content_loss.item(), spoof_class_loss.item(), 
-            #         spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), recon_loss.item(), depth_loss.item(), swap_loss.item()), end = "")
+                    spoof_grl_content_loss.item(), spoof_grl_domain_loss.item(), depth_loss), end = "")
         
         opt_domain_a_scheduler.step()
         opt_domain_b_scheduler.step()
@@ -494,7 +487,6 @@ def train_acc(args):
         opt_spoof_classify_scheduler.step()
         opt_domain_classify_scheduler.step()
         opt_depth_scheduler.step()
-        # opt_decode_scheduler.step()
 
         print("{} lr: {}".format(epoch, opt_domain_a_scheduler.get_last_lr()[0]))
 
@@ -502,14 +494,8 @@ def train_acc(args):
                 i+1, args.n_epoch, e_domain_class_loss.item(), e_domain_grl_spoof_loss.item() , e_domain_grl_content_loss.item(), e_spoof_class_loss.item(), 
                 e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_recon_loss, e_depth_loss, e_swap_loss))
 
-        # print("{}/{} e_domain_class_loss:{:.5f}, e_domain_grl_spoof_loss={:.5f}, e_domain_grl_content_loss={:.5f}, e_spoof_class_loss={:.4f}, e_spoof_grl_content_loss={:.5f}, e_spoof_grl_domain_loss={:.5f}, e_recon_loss = {:.5f}, e_depth_loss = {:.5f}, e_swap_loss = {:.5f}".format(
-        #         i+1, n_epoch, e_domain_class_loss.item(), e_domain_grl_spoof_loss.item() , e_domain_grl_content_loss.item(), e_spoof_class_loss.item(), 
-        #         e_spoof_grl_content_loss.item(), e_spoof_grl_domain_loss.item(), e_recon_loss.item(), e_depth_loss.item(), e_swap_loss.item()))
-
         shared_spoof.eval()
         spoof_classify.eval()
-        ans = []
-        pred = []
         correct = 0
         with torch.no_grad():
             for batch_idx, data in enumerate(test_loader):
@@ -522,6 +508,7 @@ def train_acc(args):
                 features, loss = spoof_classify(result, label, True)
                 # print('spoof_class_loss={:.4f}'.format(loss))
                 for j in range(len(features)):
+<<<<<<< HEAD
                     if label[j].item() == 0:
                         ans.append(1)
                     else:
@@ -558,6 +545,17 @@ def train_acc(args):
             test_best_auc = test_auc
             test_best_acc = correct/len(test_dataset)
             test_best_hter = test_hter
+=======
+                    if label[j].item() == torch.argmax(features[j], dim=0).item():
+                        correct += 1
+        test_acc = correct/len(test_dataset)
+
+        print('Final {} test acc = {}'.format(args.target_domain, test_acc))
+
+        if test_acc > test_best_acc:
+            test_best_acc = test_acc
+            test_best_epoch = epoch
+>>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
             torch.save(shared_spoof, shared_spoof_path)
             torch.save(spoof_classify, spoof_classify_path)
             torch.save(shared_content, shared_content_path)
@@ -566,5 +564,4 @@ def train_acc(args):
             torch.save(domain_b_encoder, domain2_encoder_path)
             torch.save(domain_c_encoder, domain3_encoder_path)
             torch.save(domain_classify, domain_classify_path)
-            # torch.save(decode, decoder_path)
             print('{}: save model'.format(args.target_domain))

@@ -27,6 +27,11 @@ Training	 |  ?	   |    60       |    60	       |     240       |    360
 Dev        |  ?	   |    60	     |     60	       |     240	     |    360
 Test	     |  ?	   |    80	     |     80	       |     320	     |    480 
 
+SiW        | Users | Real access | Print attacks | Video attacks | Total
+---------  |:-----:|------------:| -------------:| ------------: |--------
+Training	 |  90	 |    ?        |     ?	       |     ?         |    ? 
+Test	     |  75   |    ? 	     |     ?	       |     ?  	     |    ? 
+
 ## Usuage 
 ### 1. unzip dataset
 **unzip dataset.zip**

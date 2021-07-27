@@ -8,6 +8,10 @@ from train_binary import *
 from train_noContent import *
 from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
+from train_auc_triplet_ours import *
+from train_auc_triplet_ssdg import *
+
+
 def main(args):
     if args.type == 'auc':
         train_auc(args)
@@ -21,6 +25,10 @@ def main(args):
         train_noContentGRL2Spoof(args)
     elif args.type == 'noDepth':
         train_noDepth(args)
+    elif args.type == 'aucTripletOurs':
+        train_auc_triplet_ours(args)
+    elif args.type == 'aucTripletSSDG':
+        train_auc_triplet_ssdg(args)
     else:
         warnings.warn("Please check your training type")
         sys.exit()
@@ -41,7 +49,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
+<<<<<<< HEAD
     parser.add_argument('--dataset_path', type=str, default='./dataset_224')
+=======
+    parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_256')
+>>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
     parser.add_argument('--type', type=str, default='auc')
     parser.add_argument('--gpu_id', type=str, default='0')
 
@@ -50,6 +62,8 @@ if __name__ == '__main__':
     parser.add_argument('--number_folder', type=str, default='0')
    
     # model
+    parser.add_argument('--scratch', type=str, default='True')
+    parser.add_argument('--load_folder', type=str, default='0')
 
     # optimizer
     parser.add_argument('--lr', type=float, default=0.0001)
