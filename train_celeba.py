@@ -27,9 +27,9 @@ from scipy.interpolate import interp1d
 from utils import *
 from model import *
 from loss import *
-from dataset_auc import *
+from dataset_add_celeba import *
 
-def train_auc(args):
+def train_celeba(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:{}".format(args.gpu_id) if use_cuda else "cpu")
@@ -55,7 +55,7 @@ def train_auc(args):
     print("domain2_dataset:{}".format(len(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset)))
     print("domain3_dataset:{}".format(len(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset)))
 
-    test_loader = DataLoader(test_dataset, batch_size = args.batch_size, shuffle = False)
+    test_loader = DataLoader(test_dataset, batch_size = args.test_batch_size, shuffle = False)
     domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
     domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
     domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
@@ -81,7 +81,7 @@ def train_auc(args):
     """## Training"""
 
     # alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.0001, 0.0001  # beta: spoof, gamma: grl
-    alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.0001, 0.01  # beta: spoof, gamma: grl
+    alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.0001, 0.001  # beta: spoof, gamma: grl
     #alpha for spoofing  classify MSE to content and domain
     #gamma for else 
     test_best_auc = 0.0
@@ -116,11 +116,6 @@ def train_auc(args):
     # simse_loss = SIMSE()
     # triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2)
 
-    #plot acc
-    plot_auc = []
-    plot_acc = []
-    plot_hter = []
-
     print('epoch num = ', args.n_epoch, ', iter num = ', len_dataloader)
 
     for epoch in range(args.n_epoch):
@@ -128,10 +123,10 @@ def train_auc(args):
         domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
         print('-------------------------------------------------- epoch = {} --------------------------------------------------'.format(str(epoch))) 
-        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_auc)))
-        print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_acc))) 
-        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format(args.target_domain, str(test_best_hter))) 
-        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format(args.target_domain, str(test_best_epoch))) 
+        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format("celeba_spoof", str(test_best_auc)))
+        print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format("celeba_spoof", str(test_best_acc))) 
+        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format("celeba_spoof", str(test_best_hter))) 
+        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format("celeba_spoof", str(test_best_epoch))) 
 
         e_domain_class_loss = 0.0 
         e_domain_grl_spoof_loss = 0.0 
@@ -341,13 +336,10 @@ def train_auc(args):
         test_acc = correct/len(test_dataset)
         _, test_hter = HTER(np.array(pred), np.array(ans))
 
-        print('Final {} test auc = {}'.format(args.target_domain, test_auc))
-        print('Final {} test acc = {}'.format(args.target_domain, test_acc))
-        print('Final {} test hter = {}'.format(args.target_domain, test_hter))
+        print('Final {} test auc = {}'.format("celeba_spoof", test_auc))
+        print('Final {} test acc = {}'.format("celeba_spoof", test_acc))
+        print('Final {} test hter = {}'.format("celeba_spoof", test_hter))
 
-        plot_auc.append(test_auc)
-        plot_acc.append(test_acc)
-        plot_hter.append(test_hter)
         if test_auc > test_best_auc:
             test_best_auc = test_auc
             test_best_acc = test_acc
@@ -361,4 +353,4 @@ def train_auc(args):
             torch.save(domain_b_encoder, domain2_encoder_path)
             torch.save(domain_c_encoder, domain3_encoder_path)
             torch.save(domain_classify, domain_classify_path)
-            print('{}: save model'.format(args.target_domain))
+            print('{}: save model'.format("celeba_spoof"))

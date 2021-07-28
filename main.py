@@ -10,6 +10,7 @@ from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
 from train_auc_triplet_ours import *
 from train_auc_triplet_ssdg import *
+from train_celeba import *
 
 
 def main(args):
@@ -29,6 +30,8 @@ def main(args):
         train_auc_triplet_ours(args)
     elif args.type == 'aucTripletSSDG':
         train_auc_triplet_ssdg(args)
+    elif args.type == 'celeba':
+        train_celeba(args)
     else:
         warnings.warn("Please check your training type")
         sys.exit()
@@ -68,6 +71,7 @@ if __name__ == '__main__':
     parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
     parser.add_argument('--batch_size', type=int, default=20)
+    parser.add_argument('--test_batch_size', type=int, default=64)
     parser.add_argument('--batch_triplet', type=int, default=4) 
     parser.add_argument('--n_epoch', type=int, default=100)
 

@@ -430,7 +430,7 @@ class CelebA_Spoof_dataset(Dataset):
 
     def __getitem__(self, index):
         pic = str(self.pathname[index])[:-4] # x_cropped_557638
-        pic = pic + '.jpg' # x_cropped_557638.jpg
+        pic = pic + '.png' # x_cropped_557638.jpg
         pic_path = os.path.join(self.common_path, pic)
 
         if self.mode == 'train':
@@ -516,9 +516,12 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     casia_train_replay_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/train_release/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack='replay')
     casia_test_dataset = Casia_dataset(os.path.join(path, 'CASIA_faceAntisp/test_release/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth)
 
+    celeba_test_real_dataset = CelebA_Spoof_dataset(os.path.join(path, 'CelebA_Spoof/real'), 'test', transform = transform, attack='real')
+    celeba_test_spoof_dataset = CelebA_Spoof_dataset(os.path.join(path, 'CelebA_Spoof/spoof'), 'test', transform = transform, attack='spoof')
 
     if target_domain == 'msu': 
-        test_dataset = msu_test_real_dataset + msu_test_print_dataset + msu_test_replay_dataset
+        # test_dataset = msu_test_real_dataset + msu_test_print_dataset + msu_test_replay_dataset
+        test_dataset = celeba_test_real_dataset + celeba_test_spoof_dataset
         domain1_real_dataset = idiap_train_real_dataset
         domain1_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset)
         domain1_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset)
@@ -529,7 +532,8 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain3_print_dataset = casia_train_print_dataset
         domain3_replay_dataset = casia_train_replay_dataset
     elif target_domain == 'idiap':
-        test_dataset = idiap_test_real_dataset + idiap_test_print_fixed_dataset + idiap_test_replay_fixed_dataset + idiap_test_print_hand_dataset + idiap_test_replay_hand_dataset 
+        # test_dataset = idiap_test_real_dataset + idiap_test_print_fixed_dataset + idiap_test_replay_fixed_dataset + idiap_test_print_hand_dataset + idiap_test_replay_hand_dataset 
+        test_dataset = celeba_test_real_dataset + celeba_test_spoof_dataset
         domain1_real_dataset = msu_train_real_dataset
         domain1_print_dataset = msu_train_print_dataset
         domain1_replay_dataset = msu_train_replay_dataset
@@ -540,7 +544,8 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain3_print_dataset = casia_train_print_dataset
         domain3_replay_dataset = casia_train_replay_dataset     
     elif target_domain == 'oulu':
-        test_dataset = oulu_test_dataset
+        # test_dataset = oulu_test_dataset
+        test_dataset = celeba_test_real_dataset + celeba_test_spoof_dataset
         domain1_real_dataset = msu_train_real_dataset
         domain1_print_dataset = msu_train_print_dataset
         domain1_replay_dataset = msu_train_replay_dataset
@@ -551,7 +556,8 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain3_print_dataset = casia_train_print_dataset
         domain3_replay_dataset = casia_train_replay_dataset   
     elif target_domain == 'casia':
-        test_dataset = casia_test_dataset
+        # test_dataset = casia_test_dataset
+        test_dataset = celeba_test_real_dataset + celeba_test_spoof_dataset
         domain1_real_dataset = msu_train_real_dataset
         domain1_print_dataset = msu_train_print_dataset
         domain1_replay_dataset = msu_train_replay_dataset
