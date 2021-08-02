@@ -29,6 +29,22 @@ from model import *
 from loss import *
 from dataset_acc import *
 
+
+def make_weights_for_balanced_classes(images, nclasses):                        
+    count = [0] * nclasses                                                      
+    for item in images:
+        #print(item[2])                                                         
+        count[item[2]] += 1                                                     
+    weight_per_class = [0.] * nclasses                                      
+    N = float(sum(count))                                                   
+    for i in range(nclasses):                                                   
+        weight_per_class[i] = N/float(count[i])                                 
+    weight = [0] * len(images)                                              
+    for idx, val in enumerate(images):                                          
+        weight[idx] = weight_per_class[val[2]]                                  
+    return weight   
+
+
 def train_acc(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
@@ -116,12 +132,27 @@ def train_acc(args):
     mse_loss = MSE()
 
     print('epoch num = ', args.n_epoch, ', iter num = ', len_dataloader)
+            #random sample
+
+    weights1 = make_weights_for_balanced_classes(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, 3)                                                                
+    weights1 = torch.DoubleTensor(weights1)  
+    sampler1 = torch.utils.data.sampler.WeightedRandomSampler(weights1, len(weights1),replacement = True)                     
+    weights2 = make_weights_for_balanced_classes(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, 3)                                                                
+    weights2 = torch.DoubleTensor(weights2)                                       
+    sampler2 = torch.utils.data.sampler.WeightedRandomSampler(weights2, len(weights2),replacement = True)             
+    weights3 = make_weights_for_balanced_classes(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, 3)                                                                
+    weights3 = torch.DoubleTensor(weights3)                                       
+    sampler3 = torch.utils.data.sampler.WeightedRandomSampler(weights3, len(weights3),replacement = True)     
+
+    domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, sampler = sampler1)
+    domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size,  sampler = sampler2)
+    domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size,  sampler = sampler3)
+     
 
     for epoch in range(args.n_epoch):
         torch.cuda.empty_cache()
-        domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
-        domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
-        domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
+        
+
         print(device)
         print('-------------------------------------------------- epoch = {} --------------------------------------------------'.format(str(epoch))) 
         print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_acc))) 
@@ -273,20 +304,13 @@ def train_acc(args):
             
             torch.cuda.empty_cache()
             ###Step 5 : 訓練 depth###
-            #content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
-            #depth_recon = depth_map(content_feature)
+            content_feature = shared_content(mixed_data).view(-1, 1000, 1, 1) ###
+            depth_recon = depth_map(content_feature)
 
-<<<<<<< HEAD
-            #err_sim1 = mse_loss(depth_recon, mixed_depth)
-            # err_sim2 = simse_loss(depth_recon, mixed_depth)
-            # err = 0.01*err_sim1 + 0.01*err_sim2
-            #depth_loss = 0.01*err_sim1
-            #e_depth_loss += depth_loss
-=======
+
             err_sim1 = mse_loss(depth_recon, mixed_depth)
             depth_loss = 0.01*err_sim1
             e_depth_loss += depth_loss
->>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
 
             # loss = depth_loss
             # loss.backward()
@@ -295,156 +319,6 @@ def train_acc(args):
             # opt_shared_content.zero_grad()
             # opt_depth.zero_grad()
             # depth_map.eval()
-
-<<<<<<< HEAD
-            ###Step 6 : Recon###
-            # spoof_feature = shared_spoof(mixed_data) 
-            # content_feature = shared_content(mixed_data) 
-            # domain1_feature = domain_a_encoder(d1_data)
-            # domain2_feature = domain_b_encoder(d2_data)
-            # domain3_feature = domain_c_encoder(d2_data)
-
-            # d1_spoof = spoof_feature[:][:len_data]
-            # d2_spoof = spoof_feature[:][len_data:len_data*2]
-            # d3_spoof = spoof_feature[:][len_data*2:]
-
-            # d1_content = content_feature[:][:len_data]
-            # d2_content = content_feature[:][len_data:len_data*2]
-            # d3_content = content_feature[:][len_data*2:]
-
-            # d1_recon = torch.cat([d1_spoof, d1_content, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d2_recon = torch.cat([d2_spoof, d2_content, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d3_recon = torch.cat([d3_spoof, d3_content, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-
-            # d1_recon = decode(d1_recon)
-            # d2_recon = decode(d2_recon)
-            # d3_recon = decode(d3_recon)
-
-            # err_sim1 = mse_loss(d1_recon, d1_data)
-            # # err_sim2 = simse_loss(d1_recon, d1_data)
-            # err_sim3 = mse_loss(d2_recon, d2_data)
-            # # err_sim4 = simse_loss(d2_recon, d2_data)
-            # err_sim5 = mse_loss(d3_recon, d3_data)
-            # # err_sim6 = simse_loss(d3_recon, d3_data)      
-            # # recon_loss = 0.01*err_sim1 + 0.01*err_sim2 + 0.01*err_sim3 + 0.01*err_sim4 + 0.01*err_sim5 + 0.01*err_sim6
-            # recon_loss = 0.01*err_sim1 + 0.01*err_sim3 + 0.01*err_sim5
-            # e_recon_loss += recon_loss
-
-            # loss = recon_loss 
-            # loss.backward()
-            # opt_shared_spoof.step()
-            # opt_shared_content.step()
-            # opt_domain_a_encoder.step()
-            # opt_domain_b_encoder.step()
-            # opt_domain_c_encoder.step()
-            # opt_decode.step()
-            # opt_shared_spoof.zero_grad() 
-            # opt_shared_content.zero_grad() 
-            # opt_domain_a_encoder.zero_grad() 
-            # opt_domain_b_encoder.zero_grad() 
-            # opt_domain_c_encoder.zero_grad() 
-            # opt_decode.zero_grad() 
-
-            # ''' feature disentanglement '''
-            # domain_classify.eval()
-            # spoof_classify.eval()
-            # d1_data = d1_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
-            # d2_data = d2_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
-            # d3_data = d3_data.expand(len_data, 3, img_size , img_size)[:len_data].to(device)
-            # d1_label = d1_label[:len_data].to(device)
-            # d2_label = d2_label[:len_data].to(device)
-            # d3_label = d3_label[:len_data].to(device)
-
-            # domain_label_true = torch.zeros([(len_data*3)*2],dtype=torch.long).to(device)
-            # domain_label_true[len_data*2:(len_data*2)*2] = 1
-            # domain_label_true[(len_data*2)*2:] = 2
-
-            # mixed_data = torch.cat([d1_data, d2_data, d3_data], dim = 0).to(device)
-            # spoof_feature = shared_spoof(mixed_data)
-            # spoof1_feature = spoof_feature[:len_data]
-            # spoof2_feature = spoof_feature[len_data:len_data*2]
-            # spoof3_feature = spoof_feature[len_data*2:]
-            # content_feature = shared_content(mixed_data)
-            # content1_feature = content_feature[:len_data]
-            # content2_feature = content_feature[len_data:len_data*2]
-            # content3_feature = content_feature[len_data*2:]
-            # domain1_feature = domain_a_encoder(d1_data)
-            # domain2_feature = domain_b_encoder(d2_data)
-            # domain3_feature = domain_c_encoder(d3_data)
-
-            # ###for domain###
-
-            # d1to2_recon = torch.cat([spoof1_feature, content1_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d1to3_recon = torch.cat([spoof1_feature, content1_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d2to1_recon = torch.cat([spoof2_feature, content2_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d2to3_recon = torch.cat([spoof2_feature, content2_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d3to1_recon = torch.cat([spoof3_feature, content3_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # d3to2_recon = torch.cat([spoof3_feature, content3_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-
-            # d1to2_recon = decode(d1to2_recon)
-            # d1to3_recon = decode(d1to3_recon)
-            # d2to1_recon = decode(d2to1_recon)
-            # d2to3_recon = decode(d2to3_recon)
-            # d3to1_recon = decode(d3to1_recon)
-            # d3to2_recon = decode(d3to2_recon)
-
-            # d1to2_recon_feature = domain_b_encoder(d1to2_recon)
-            # d1to3_recon_feature = domain_c_encoder(d1to3_recon)
-            # d2to1_recon_feature = domain_a_encoder(d2to1_recon)
-            # d2to3_recon_feature = domain_c_encoder(d2to3_recon)
-            # d3to1_recon_feature = domain_a_encoder(d3to1_recon)
-            # d3to2_recon_feature = domain_b_encoder(d3to2_recon)
-
-            # domain_recon_feature = torch.cat([d2to1_recon_feature, d3to1_recon_feature, d1to2_recon_feature, 
-            #                                 d3to2_recon_feature, d1to3_recon_feature, d2to3_recon_feature], dim = 0).to(device)
-            # domain_recon_logit = domain_classify(domain_recon_feature)
-            # loss_swap_domain = class_criterion(domain_recon_logit, domain_label_true)
-
-            # ###for spoof###
-            # s1to2_recon = torch.cat([spoof2_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s1to3_recon = torch.cat([spoof3_feature, content1_feature, domain1_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s2to1_recon = torch.cat([spoof1_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s2to3_recon = torch.cat([spoof3_feature, content2_feature, domain2_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s3to1_recon = torch.cat([spoof1_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s3to2_recon = torch.cat([spoof2_feature, content3_feature, domain3_feature], dim = 1).view(-1, 3000, 1, 1).to(device)
-            # s1to2_recon = decode(s1to2_recon)
-            # s1to3_recon = decode(s1to3_recon)
-            # s2to1_recon = decode(s2to1_recon)
-            # s2to3_recon = decode(s2to3_recon)
-            # s3to1_recon = decode(s3to1_recon)
-            # s3to2_recon = decode(s3to2_recon)
-            # s_recon_feature = shared_spoof(torch.cat([s2to1_recon, s3to1_recon, s1to2_recon,
-            #                                         s3to2_recon, s1to3_recon, s2to3_recon], dim = 0)).to(device)
-            # # spoof_recon_logit = spoof_classify(s_recon_feature)
-            # mixed_label = torch.cat([d1_label, d1_label, d2_label, d2_label, d3_label, d3_label], dim = 0).to(device)
-            # _, loss_swap_spoof = spoof_classify(s_recon_feature, mixed_label, True)
-            # swap_loss = lambda_function(10, epoch)*(loss_swap_domain + beta*loss_swap_spoof)
-            # swap_loss = lambda_function(10, epoch)*(loss_swap_domain)
-            # e_swap_loss += swap_loss
-
-            # loss = swap_loss
-            # loss.backward() 
-            # # opt_shared_spoof.step()
-            # opt_domain_a_encoder.step()
-            # opt_domain_b_encoder.step()
-            # opt_domain_c_encoder.step()
-            # # opt_shared_spoof.zero_grad() 
-            # opt_domain_a_encoder.zero_grad() 
-            # opt_domain_b_encoder.zero_grad()
-            # opt_domain_c_encoder.zero_grad()
-
-            # domain1_real_loader = DataLoader(domain1_real_dataset, batch_size = batch_size, shuffle = True)
-            # domain1_print_loader = DataLoader(domain1_print_dataset, batch_size = batch_size, shuffle = True)
-            # domain1_replay_loader = DataLoader(domain1_replay_dataset, batch_size = batch_size, shuffle = True)
-            # domain2_real_loader = DataLoader(domain2_real_dataset, batch_size = batch_size, shuffle = True)
-            # domain2_print_loader = DataLoader(domain2_print_dataset, batch_size = batch_size, shuffle = True)
-            # domain2_replay_loader = DataLoader(domain2_replay_dataset, batch_size = batch_size, shuffle = True)
-            # domain3_real_loader = DataLoader(domain3_real_dataset, batch_size = batch_size, shuffle = True)
-            # domain3_print_loader = DataLoader(domain3_print_dataset, batch_size = batch_size, shuffle = True)
-            # domain3_replay_loader = DataLoader(domain3_replay_dataset, batch_size = batch_size, shuffle = True)
-
-=======
->>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
             # ''' triplet loss '''
             # for k, ((d1_real, _, d1_real_label), (d1_print, _, d1_print_label), (d1_replay, _, d1_replay_label), 
             #         (d2_real, _, d2_real_label), (d2_print, _, d2_print_label), (d2_replay, _, d2_replay_label), 
@@ -498,6 +372,21 @@ def train_acc(args):
         spoof_classify.eval()
         correct = 0
         with torch.no_grad():
+            for batch_idx, data in enumerate(domain1_loader):
+                print("\r", batch_idx, '/', len(domain1_loader), end = "")
+                im,_, label = data
+                im, label = im.to(device), label.to(device)
+                im = im.expand(im.data.shape[0], 3, 256, 256)
+
+                result = shared_spoof(im)
+                features, loss = spoof_classify(result, label, True)
+                # print('spoof_class_loss={:.4f}'.format(loss))
+                for j in range(len(features)):
+                    if label[j].item() == torch.argmax(features[j], dim=0).item():
+                        correct += 1
+        train_acc = correct/len(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset)
+        correct = 0
+        with torch.no_grad():
             for batch_idx, data in enumerate(test_loader):
                 print("\r", batch_idx, '/', len(test_loader), end = "")
                 im, label = data
@@ -508,54 +397,15 @@ def train_acc(args):
                 features, loss = spoof_classify(result, label, True)
                 # print('spoof_class_loss={:.4f}'.format(loss))
                 for j in range(len(features)):
-<<<<<<< HEAD
-                    if label[j].item() == 0:
-                        ans.append(1)
-                    else:
-                        ans.append(0)
-                    
-                    real = features[j][0]
-                    fake = torch.max(features[j][1], features[j][2])
-                    real = real.unsqueeze(0)
-                    fake = fake.unsqueeze(0)
-                    prob = softmax(torch.cat((real, fake), 0))[0].item()
-                    # prob = features[j][0].item()
-                    pred.append(prob)
-                    # if prob >= 0.4:    
-                    #     pred.append(1)
-                    # # elif prob <= 0.2:
-                    # #     pred.append(0)
-                    # else:
-                    #     pred.append(prob)
-                    #print(prob)
-                    if label[j].item() == torch.argmax(features[j], dim=0).item():
-                        correct += 1
-        #print(pred)
-        test_auc = roc_auc_score(ans, pred)
-        _, test_hter = HTER(np.array(pred), np.array(ans))
-
-        print('Final {} test auc = {}'.format(args.target_domain, test_auc))
-        print('Final {} test acc = {}'.format(args.target_domain, correct/len(test_dataset)))
-        print('Final {} test hter = {}'.format(args.target_domain, test_hter))
-
-        plot_auc.append(test_auc)
-        plot_acc.append(test_auc)
-        plot_hter.append(test_hter)
-        if test_auc > test_best_auc:
-            test_best_auc = test_auc
-            test_best_acc = correct/len(test_dataset)
-            test_best_hter = test_hter
-=======
                     if label[j].item() == torch.argmax(features[j], dim=0).item():
                         correct += 1
         test_acc = correct/len(test_dataset)
 
-        print('Final {} test acc = {}'.format(args.target_domain, test_acc))
+        print('Final {}  train acc = {} test acc = {}'.format(args.target_domain, train_acc,test_acc))
 
         if test_acc > test_best_acc:
             test_best_acc = test_acc
             test_best_epoch = epoch
->>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
             torch.save(shared_spoof, shared_spoof_path)
             torch.save(spoof_classify, spoof_classify_path)
             torch.save(shared_content, shared_content_path)

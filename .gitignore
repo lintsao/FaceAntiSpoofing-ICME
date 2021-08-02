@@ -1,6 +1,11 @@
 model
 dataset
 *.png
+dataset_224
+dataset_256
+cropped_img
+
+__pycache__/*
 
 
 

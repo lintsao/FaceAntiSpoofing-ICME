@@ -10,6 +10,7 @@ from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
 from train_auc_triplet_ours import *
 from train_auc_triplet_ssdg import *
+from train_auc_2domain import *
 
 
 def main(args):
@@ -29,6 +30,8 @@ def main(args):
         train_auc_triplet_ours(args)
     elif args.type == 'aucTripletSSDG':
         train_auc_triplet_ssdg(args)
+    elif args.type == "2domain":
+        train_auc_2domain(args)
     else:
         warnings.warn("Please check your training type")
         sys.exit()
@@ -49,15 +52,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
-<<<<<<< HEAD
-    parser.add_argument('--dataset_path', type=str, default='./dataset_224')
-=======
-    parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_256')
->>>>>>> d579b9d83676e4ff3eb7183901fd3c63564bd031
+    parser.add_argument('--dataset_path', type=str, default='./dataset_256/pr_depth_map')
     parser.add_argument('--type', type=str, default='auc')
     parser.add_argument('--gpu_id', type=str, default='0')
 
-    # datasets 
+    # datasets nlp127890!
+
     parser.add_argument('--target_domain', type=str, default='oulu')
     parser.add_argument('--number_folder', type=str, default='0')
    
@@ -69,9 +69,9 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.0001)
 
     # training configs
-    parser.add_argument('--img_size', type=int, default=224) 
+    parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
-    parser.add_argument('--batch_size', type=int, default=3)
+    parser.add_argument('--batch_size', type=int, default=10)
     parser.add_argument('--batch_triplet', type=int, default=4) 
     parser.add_argument('--n_epoch', type=int, default=100)
 

@@ -29,7 +29,7 @@ from model import *
 from loss import *
 from dataset_auc import *
 
-def train_auc(args):
+def train_auc_2domain(args):
     same_seeds(args.seed)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:{}".format(args.gpu_id) if use_cuda else "cpu")
@@ -40,29 +40,32 @@ def train_auc(args):
     # target:Oulu   => 1: m, 2: i, 3: c
     # target:Casia  => 1: m, 2: i, 3: o
 
-    shared_spoof_path, spoof_classify_path, shared_content_path, \
-    domain1_encoder_path, domain2_encoder_path, domain3_encoder_path, \
-    domain_classify_path, decoder_path, depth_map_path = make_model_path(args.path, args.target_domain, args.number_folder) 
+    shared_spoof_path_o, spoof_classify_path_o, shared_content_path_o, \
+    domain1_encoder_path_o, domain2_encoder_path_o, domain3_encoder_path_o, \
+    domain_classify_path_o, decoder_path_o, depth_map_path_o = make_model_path(args.path, "oulu", args.number_folder) 
+
+    shared_spoof_path_c, spoof_classify_path_c, shared_content_path_c, \
+    domain1_encoder_path_c, domain2_encoder_path_c, domain3_encoder_path_c, \
+    domain_classify_path_c, decoder_path_c, depth_map_path_c = make_model_path(args.path, "oulu", args.number_folder) 
+
     print("-------------------------------------------------- finish model path --------------------------------------------------")
 
-    test_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
-    domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
-    domain3_print_dataset, domain3_replay_dataset = choose_dataset(args.dataset_path, args.target_domain, args.img_size, args.depth_size)
+    test_dataset_c, test_dataset_o, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
+            domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset = choose_dataset_2domain(args.dataset_path, args.target_domain, args.img_size, args.depth_size)
     print("-------------------------------------------------- finish dataset --------------------------------------------------")
 
-    print("test_dataset:{}".format(len(test_dataset)))
+    print("test_dataset oulu:{}".format(len(test_dataset_o)))
+    print("test_dataset oulu:{}".format(len(test_dataset_c)))
     print("domain1_dataset:{}".format(len(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset)))
     print("domain2_dataset:{}".format(len(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset)))
-    print("domain3_dataset:{}".format(len(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset)))
 
-    test_loader = DataLoader(test_dataset, batch_size = args.batch_size, shuffle = False,pin_memory=True,num_workers = 4)
+    test_loader_c = DataLoader(test_dataset_c, batch_size = args.batch_size, shuffle = False,pin_memory=True,num_workers = 4)
+    test_loader_o = DataLoader(test_dataset_o, batch_size = args.batch_size, shuffle = False,pin_memory=True,num_workers = 4)
     domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True,pin_memory=True,num_workers = 4)
     domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True,pin_memory=True,num_workers = 4)
-    domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True,pin_memory=True,num_workers = 4)
-
+    
     domain_a_encoder = torchvision.models.resnet18(pretrained=True).to(device)
     domain_b_encoder = torchvision.models.resnet18(pretrained=True).to(device)
-    domain_c_encoder = torchvision.models.resnet18(pretrained=True).to(device)
     shared_content = torchvision.models.resnet18(pretrained=True).to(device)
     shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
     spoof_classify = spoof_classifier_auc().to(device)
@@ -72,19 +75,21 @@ def train_auc(args):
 
     """## Training"""
 
-    alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.0001, 0.01  # beta: spoof, gamma: grl
-    #alpha for spoofing  classify MSE to content and domain
-    #gamma for else 
-    test_best_auc = 0.0
-    test_best_acc = 0.0
-    test_best_hter = 0.0
-    test_best_epoch = 0
+    alpha, beta_depth, beta_faces, gamma = 0.0001, 0.0001, 0.0001, 0.001  # beta: spoof, gamma: grl
+    test_best_auc_o = 0.0
+    test_best_acc_o = 0.0
+    test_best_hter_o = 0.0
+    test_best_epoch_o = 0
 
-    len_dataloader = min(len(domain1_loader), len(domain2_loader), len(domain3_loader))
+    test_best_auc_c = 0.0
+    test_best_acc_c = 0.0
+    test_best_hter_c = 0.0
+    test_best_epoch_c = 0
+
+    len_dataloader = min(len(domain1_loader), len(domain2_loader))
 
     opt_domain_a_encoder = optim.AdamW(domain_a_encoder.parameters(), lr = args.lr)
     opt_domain_b_encoder = optim.AdamW(domain_b_encoder.parameters(), lr = args.lr)
-    opt_domain_c_encoder = optim.AdamW(domain_c_encoder.parameters(), lr = args.lr)
     opt_shared_content = optim.AdamW(shared_content.parameters(), lr = args.lr)
     opt_shared_spoof = optim.AdamW(shared_spoof.parameters(), lr = args.lr)
     opt_spoof_classify = optim.AdamW(spoof_classify.parameters(), lr = args.lr)
@@ -95,7 +100,6 @@ def train_auc(args):
 
     opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=lr_lst, gamma=0.9)
     opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=lr_lst, gamma=0.9)
-    opt_domain_c_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_c_encoder, milestones=lr_lst, gamma=0.9)
     opt_shared_content_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_content, milestones=lr_lst, gamma=0.9)
     opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=lr_lst, gamma=0.9)
     opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=lr_lst, gamma=0.9)
@@ -120,12 +124,19 @@ def train_auc(args):
     for epoch in range(args.n_epoch):
         domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
-        domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
+        
         print('-------------------------------------------------- epoch = {} --------------------------------------------------'.format(str(epoch))) 
-        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_auc)))
-        print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format(args.target_domain, str(test_best_acc))) 
-        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format(args.target_domain, str(test_best_hter))) 
-        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format(args.target_domain, str(test_best_epoch))) 
+        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format("oulu", str(test_best_auc_o)))
+        print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format("oulu", str(test_best_acc_o))) 
+        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format("oulu", str(test_best_hter_o))) 
+        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format("oulu", str(test_best_epoch_c))) 
+
+        print('-------------------------------------------------- epoch = {} --------------------------------------------------'.format(str(epoch))) 
+        print('-------------------------------------------------- {} Auc = {} --------------------------------------------------'.format("casia", str(test_best_auc_c)))
+        print('-------------------------------------------------- {} Acc = {} --------------------------------------------------'.format("casia", str(test_best_acc_c))) 
+        print('-------------------------------------------------- {} Hter = {} --------------------------------------------------'.format("casia", str(test_best_hter_c))) 
+        print('-------------------------------------------------- {} @epoch = {} --------------------------------------------------'.format("casia", str(test_best_epoch_c))) 
+
 
         e_domain_class_loss = 0.0 
         e_domain_grl_spoof_loss = 0.0 
@@ -137,11 +148,10 @@ def train_auc(args):
         e_depth_loss = 0.0
         e_swap_loss = 0.0 
         
-        for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label), (d3_data, d3_depth, d3_label)) in enumerate(zip(domain1_loader, domain2_loader, domain3_loader)):
+        for i, ((d1_data, d1_depth, d1_label), (d2_data, d2_depth, d2_label)) in enumerate(zip(domain1_loader, domain2_loader)):
             torch.cuda.empty_cache()
             domain_a_encoder.train()
             domain_b_encoder.train()
-            domain_c_encoder.train()
             shared_content.train()
             shared_spoof.train()
             spoof_classify.train()
@@ -158,37 +168,35 @@ def train_auc(args):
             depth_loss = 0.0
 
             ###Set data###
-            len_data = min(len(d1_data), len(d2_data), len(d3_data))
+            len_data = min(len(d1_data), len(d2_data))
             d1_data = d1_data.expand(len(d1_data), 3, args.img_size , args.img_size)[:len_data].to(device)
             d2_data = d2_data.expand(len(d2_data), 3, args.img_size , args.img_size)[:len_data].to(device)
-            d3_data = d3_data.expand(len(d3_data), 3, args.img_size , args.img_size)[:len_data].to(device)
+            
             d1_depth = d1_depth[:len_data].to(device)
             d2_depth = d2_depth[:len_data].to(device)
-            d3_depth = d3_depth[:len_data].to(device)
+            
             d1_label = d1_label[:len_data].to(device)
             d2_label = d2_label[:len_data].to(device)
-            d3_label = d3_label[:len_data].to(device)
+            
     
             # 把所有不同domain的資料混在一起
-            mixed_data = torch.cat([d1_data, d2_data, d3_data], dim = 0).to(device)
-            mixed_depth = torch.cat([d1_depth, d2_depth, d3_depth], dim = 0).to(device)
-            mixed_label = torch.cat([d1_label, d2_label, d3_label], dim = 0).to(device)
+            mixed_data = torch.cat([d1_data, d2_data], dim = 0).to(device)
+            mixed_depth = torch.cat([d1_depth, d2_depth], dim = 0).to(device)
+            mixed_label = torch.cat([d1_label, d2_label], dim = 0).to(device)
 
-            mixed_label_domain = torch.tensor([1/3]).repeat(len_data*3, 3).to(device)
-            mixed_label_re = torch.tensor([1/2]).repeat(len_data*3, 2).to(device) # real, print, replay，要讓模型無法分出來
+            mixed_label_domain = torch.tensor([1/3]).repeat(len_data*2, 3).to(device)
+            mixed_label_re = torch.tensor([1/2]).repeat(len_data*2, 2).to(device) # real, print, replay，要讓模型無法分出來
 
             #設定domain label
-            domain_label_true = torch.zeros([len_data*3],dtype=torch.long).to(device)
-            domain_label_true[len_data:len_data*2] = 1
-            domain_label_true[len_data*2:] = 2
+            domain_label_true = torch.zeros([len_data*2],dtype=torch.long).to(device)
+            domain_label_true[len_data:] = 1
     
             ###Extract feature###
             spoof_feature = shared_spoof(mixed_data)
             content_feature = shared_content(mixed_data)
             domain1_feature = domain_a_encoder(d1_data)
             domain2_feature = domain_b_encoder(d2_data)
-            domain3_feature = domain_c_encoder(d3_data)
-            domain_feature = torch.cat([domain1_feature, domain2_feature, domain3_feature], dim = 0).to(device)
+            domain_feature = torch.cat([domain1_feature, domain2_feature], dim = 0).to(device)
 
             # ###Step 1 : 訓練 Domain Classifier(正向訓練)###
             domain_logit = domain_classify(domain_feature)
@@ -199,13 +207,11 @@ def train_auc(args):
             loss.backward()
             opt_domain_a_encoder.step()
             opt_domain_b_encoder.step()
-            opt_domain_c_encoder.step()
             opt_domain_classify.step()
 
             domain_classify.eval() # 不要動
             opt_domain_a_encoder.zero_grad() 
             opt_domain_b_encoder.zero_grad() 
-            opt_domain_c_encoder.zero_grad()
             opt_domain_classify.zero_grad() 
 
             ###Step 2 : 讓Domain Classify GRL回spoof和content###
@@ -247,8 +253,7 @@ def train_auc(args):
             content_feature = shared_content(mixed_data) 
             domain1_feature = domain_a_encoder(d1_data)
             domain2_feature = domain_b_encoder(d2_data)
-            domain3_feature = domain_b_encoder(d3_data)
-            domain_feature = torch.cat([domain1_feature, domain2_feature, domain3_feature], dim = 0).to(device)
+            domain_feature = torch.cat([domain1_feature, domain2_feature], dim = 0).to(device)
 
             content_logit = softmax(spoof_classify(content_feature, mixed_label_re, False))
             domain_logit = softmax(spoof_classify(domain_feature, mixed_label_re, False))
@@ -263,12 +268,10 @@ def train_auc(args):
             opt_shared_content.step()
             opt_domain_a_encoder.step()
             opt_domain_b_encoder.step()
-            opt_domain_c_encoder.step()
 
             opt_shared_content.zero_grad() 
             opt_domain_a_encoder.zero_grad() 
-            opt_domain_b_encoder.zero_grad() 
-            opt_domain_c_encoder.zero_grad()
+            opt_domain_b_encoder.zero_grad()
             torch.cuda.empty_cache()
 
             ##Step 5 : 訓練 depth###
@@ -276,7 +279,7 @@ def train_auc(args):
             depth_recon = depth_map(content_feature)
 
             err_sim1 = mse_loss(depth_recon, mixed_depth)
-            depth_loss = 0.001*err_sim1
+            depth_loss = 0.01*err_sim1
             e_depth_loss += depth_loss
 
             loss = depth_loss
@@ -295,7 +298,6 @@ def train_auc(args):
 
         opt_domain_a_scheduler.step()
         opt_domain_b_scheduler.step()
-        opt_domain_c_scheduler.step()
         opt_shared_content_scheduler.step()
         opt_shared_spoof_scheduler.step()
         opt_spoof_classify_scheduler.step()
@@ -314,8 +316,8 @@ def train_auc(args):
         pred = []
         correct = 0
         with torch.no_grad():
-            for batch_idx, data in enumerate(test_loader):
-                print("\r", batch_idx, '/', len(test_loader), end = "")
+            for batch_idx, data in enumerate(test_loader_o):
+                print("\r", batch_idx, '/', len(test_loader_o), end = "")
                 im, label = data
                 im, label = im.to(device), label.to(device)
                 im = im.expand(im.data.shape[0], 3, 256, 256)
@@ -334,28 +336,76 @@ def train_auc(args):
                     if label[j].item() == torch.argmax(softmax(features[j]), dim=0).item():
                         correct += 1
 
-        test_auc = roc_auc_score(ans, pred)
-        test_acc = correct/len(test_dataset)
-        _, test_hter = HTER(np.array(pred), np.array(ans))
+        test_auc_o = roc_auc_score(ans, pred)
+        test_acc_o = correct/len(test_dataset_o)
+        _, test_hter_o = HTER(np.array(pred), np.array(ans))
 
-        print('Final {} test auc = {}'.format(args.target_domain, test_auc))
-        print('Final {} test acc = {}'.format(args.target_domain, test_acc))
-        print('Final {} test hter = {}'.format(args.target_domain, test_hter))
+        print('Final {} test auc = {}'.format("oulu", test_auc_o))
+        print('Final {} test acc = {}'.format("oulu", test_acc_o))
+        print('Final {} test hter = {}'.format("oulu", test_hter_o))
 
-        plot_auc.append(test_auc)
-        plot_acc.append(test_acc)
-        plot_hter.append(test_hter)
-        if test_auc > test_best_auc:
-            test_best_auc = test_auc
-            test_best_acc = test_acc
-            test_best_hter = test_hter
-            test_best_epoch = epoch
-            torch.save(shared_spoof, shared_spoof_path)
-            torch.save(spoof_classify, spoof_classify_path)
-            torch.save(shared_content, shared_content_path)
-            torch.save(depth_map, depth_map_path)
-            torch.save(domain_a_encoder, domain1_encoder_path)
-            torch.save(domain_b_encoder, domain2_encoder_path)
-            torch.save(domain_c_encoder, domain3_encoder_path)
-            torch.save(domain_classify, domain_classify_path)
-            print('{}: save model'.format(args.target_domain))
+        plot_auc.append(test_auc_o)
+        plot_acc.append(test_acc_o)
+        plot_hter.append(test_hter_o)
+        if test_auc_o > test_best_auc_o:
+            test_best_auc_o = test_auc_o
+            test_best_acc_o = test_acc_o
+            test_best_hter_o = test_hter_o
+            test_best_epoch_o = epoch
+            torch.save(shared_spoof, shared_spoof_path_o)
+            torch.save(spoof_classify, spoof_classify_path_o)
+            torch.save(shared_content, shared_content_path_o)
+            torch.save(depth_map, depth_map_path_o)
+            torch.save(domain_a_encoder, domain1_encoder_path_o)
+            torch.save(domain_b_encoder, domain2_encoder_path_o)
+            torch.save(domain_classify, domain_classify_path_o)
+            print('{}: save model'.format("oulu"))
+
+        ans = []
+        pred = []
+        correct = 0
+        with torch.no_grad():
+            for batch_idx, data in enumerate(test_loader_c):
+                print("\r", batch_idx, '/', len(test_loader_c), end = "")
+                im, label = data
+                im, label = im.to(device), label.to(device)
+                im = im.expand(im.data.shape[0], 3, 256, 256)
+
+                result = shared_spoof(im)
+                features, loss = spoof_classify(result, label, True)
+                # print('spoof_class_loss={:.4f}'.format(loss))
+                for j in range(len(features)):
+                    if label[j].item() == 0:
+                        ans.append(1)
+                    else:
+                        ans.append(0)
+                
+                    prob = softmax(features[j])[0].item()
+                    pred.append(prob)
+                    if label[j].item() == torch.argmax(softmax(features[j]), dim=0).item():
+                        correct += 1
+
+        test_auc_c = roc_auc_score(ans, pred)
+        test_acc_c = correct/len(test_dataset_c)
+        _, test_hter_c = HTER(np.array(pred), np.array(ans))
+
+        print('Final {} test auc = {}'.format("casia", test_auc_c))
+        print('Final {} test acc = {}'.format("casia", test_acc_c))
+        print('Final {} test hter = {}'.format("casia", test_hter_c))
+
+        plot_auc.append(test_auc_c)
+        plot_acc.append(test_acc_c)
+        plot_hter.append(test_hter_c)
+        if test_auc_c > test_best_auc_c:
+            test_best_auc_c = test_auc_c
+            test_best_acc_c = test_acc_c
+            test_best_hter_c = test_hter_c
+            test_best_epoch_c = epoch
+            torch.save(shared_spoof, shared_spoof_path_c)
+            torch.save(spoof_classify, spoof_classify_path_c)
+            torch.save(shared_content, shared_content_path_c)
+            torch.save(depth_map, depth_map_path_c)
+            torch.save(domain_a_encoder, domain1_encoder_path_c)
+            torch.save(domain_b_encoder, domain2_encoder_path_c)
+            torch.save(domain_classify, domain_classify_path_c)
+            print('{}: save model'.format("casia"))
