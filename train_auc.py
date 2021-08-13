@@ -99,15 +99,15 @@ def train_auc(args):
     opt_spoof_classify = optim.AdamW(spoof_classify.parameters(), lr = args.lr)
     opt_domain_classify = optim.AdamW(domain_classify.parameters(), lr = args.lr)
     opt_depth = optim.AdamW(depth_map.parameters(), lr = args.lr)
-
-    opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_domain_c_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_c_encoder, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_shared_content_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_content, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
-    opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=[5,25,30, 70, 90,120,150,200,250,300,400], gamma=0.9)
+    lr_rate_lst = [5,20,30,70, 90,130,150,200,250,300,400,500,600,700]
+    opt_domain_a_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_a_encoder, milestones=lr_rate_lst, gamma=0.9)
+    opt_domain_b_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_b_encoder, milestones=lr_rate_lst, gamma=0.9)
+    opt_domain_c_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_c_encoder, milestones=lr_rate_lst, gamma=0.9)
+    opt_shared_content_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_content, milestones=lr_rate_lst, gamma=0.9)
+    opt_shared_spoof_scheduler = optim.lr_scheduler.MultiStepLR(opt_shared_spoof, milestones=lr_rate_lst, gamma=0.9)
+    opt_spoof_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_spoof_classify, milestones=lr_rate_lst, gamma=0.9)
+    opt_domain_classify_scheduler = optim.lr_scheduler.MultiStepLR(opt_domain_classify, milestones=lr_rate_lst, gamma=0.9)
+    opt_depth_scheduler = optim.lr_scheduler.MultiStepLR(opt_depth, milestones=lr_rate_lst, gamma=0.9)
 
     softmax = nn.Softmax(dim=0)
     class_criterion = nn.CrossEntropyLoss()
@@ -124,6 +124,8 @@ def train_auc(args):
     print('epoch num = ', args.n_epoch, ', iter num = ', len_dataloader)
 
     for epoch in range(args.n_epoch):
+        if epoch % 10 == 0:
+            gamma*=0.9
         domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
