@@ -71,6 +71,7 @@ def tsne(args):
     domains = torch.tensor([]).to(device)
 
     with torch.no_grad():
+        sample_num = 199
         # MSU real: 'blue'
         for batch_idx, data in enumerate(domain1_real_loader):
             print("\r", batch_idx, '/', len(domain1_real_loader), end = "")
@@ -81,7 +82,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([0]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         # MSU print: 'blue'
         for batch_idx, data in enumerate(domain1_print_loader):
@@ -93,7 +94,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([0]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         # MSU replay: 'blue'
         for batch_idx, data in enumerate(domain1_replay_loader):
@@ -105,7 +106,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([0]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         ###########################
         # IDIAP real: 'orange'
@@ -118,7 +119,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([1]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         # IDIAP print: 'orange'
         for batch_idx, data in enumerate(domain2_print_loader):
@@ -130,7 +131,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([1]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 150:
+            if batch_idx >= sample_num:
                 break
         # IDIAP replay: 'orange'
         for batch_idx, data in enumerate(domain2_replay_loader):
@@ -142,7 +143,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([1]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 150:
+            if batch_idx >= sample_num:
                 break
         ###########################
         # OULU real: 'green'
@@ -155,7 +156,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([2]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         # OULU print: 'green'
         for batch_idx, data in enumerate(domain3_print_loader):
@@ -167,7 +168,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([2]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         # OULU replay: 'green'
         for batch_idx, data in enumerate(domain3_replay_loader):
@@ -179,11 +180,14 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([2]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 100:
+            if batch_idx >= sample_num:
                 break
         ###########################
         # CELEBA-SPOOF real: 'red'
+        # celebaSpoof_ok = [3, 35, 24, 68, 54, 76, 95, 39, 69, 79, 87, 86, 50, 152, 189, 183, 111, 135]
         for batch_idx, data in enumerate(test_real_loader):
+            # if batch_idx+2 not in celebaSpoof_ok:
+            #     continue
             print("\r", batch_idx, '/', len(test_real_loader), end = "")
             im, label = data
             im, label = im.to(device), label.to(device)
@@ -191,8 +195,9 @@ def tsne(args):
             result = shared_spoof(im)
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
+            # attacks = torch.cat((attacks, torch.tensor([batch_idx+2]).to(device)), 0)
             domains = torch.cat((domains, torch.Tensor([3]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 200:
+            if batch_idx >= 199:
                 break
         # CELEBA-SPOOF fake: 'red'
         for batch_idx, data in enumerate(test_fake_loader):
@@ -204,7 +209,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([3]).repeat(len(im)).to(device)), 0)
-            if batch_idx > 200:
+            if batch_idx >= 199:
                 break
         
         features = features.data.cpu().numpy()
@@ -216,8 +221,7 @@ def tsne(args):
 
     plt.figure(figsize=(16, 16))
     # plt.title("O&M&I to CelebA-Spoof", fontsize=30) # title
-    # domain_map = ['O', 'M', 'I', 'C']
-    attack_map = ['O', 'X']
+    attack_map = ['O', 'X'] + list(range(200))
     color_map = ['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 
     X_tsne = features_embedded    
@@ -239,7 +243,8 @@ def tsne(args):
         else:
             data_key = Line2D([0], [0], marker='x', color='w', label=key, markerfacecolor='w', markeredgecolor=legend_dict[key], markersize=10, markeredgewidth=2.0)
         patchList.append(data_key)
-    plt.legend(handles=patchList, loc = 4, prop = {'size':20})
+    # loc = ['upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center]
+    plt.legend(handles=patchList, loc = 'lower left', prop = {'size':20})
 
     plt.savefig('./plot.png') 
 

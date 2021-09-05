@@ -2,3 +2,5 @@ model
 dataset
 pr_depth_map_256
 *.png
+*.jpg
+*.pytorch-grad-cam/sample_faces
