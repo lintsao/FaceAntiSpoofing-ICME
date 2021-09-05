@@ -254,7 +254,7 @@ def train_auc(args):
             content_feature = shared_content(mixed_data) 
             domain1_feature = domain_a_encoder(d1_data)
             domain2_feature = domain_b_encoder(d2_data)
-            domain3_feature = domain_b_encoder(d3_data)
+            domain3_feature = domain_c_encoder(d3_data)
             domain_feature = torch.cat([domain1_feature, domain2_feature, domain3_feature], dim = 0).to(device)
 
             content_logit = softmax(spoof_classify(content_feature, mixed_label_re, False))
