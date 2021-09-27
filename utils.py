@@ -66,11 +66,13 @@ def make_model_path(path, target_domain, number_folder):
         domain1_encoder_path = os.path.join(path, 'model', target_domain, number_folder, '{}_m_domain_encoder.pt'.format(target_domain))
         domain2_encoder_path = os.path.join(path, 'model', target_domain, number_folder, '{}_i_domain_encoder.pt'.format(target_domain))
         domain3_encoder_path = os.path.join(path, 'model', target_domain, number_folder, '{}_o_domain_encoder.pt'.format(target_domain))
+   
     domain_classify_path = os.path.join(path, 'model', target_domain, number_folder, '{}_domain_classify.pt'.format(target_domain))
     decoder_path = os.path.join(path, 'model', target_domain, number_folder, '{}_decoder.pt'.format(target_domain))
     depth_map_path = os.path.join(path, 'model', target_domain, number_folder, '{}_depth_map.pt'.format(target_domain))
+    shared_feature_path = os.path.join(path, 'model', target_domain, number_folder, '{}_shared_feature.pt'.format(target_domain))
     return shared_spoof_path, spoof_classify_path, shared_content_path, domain1_encoder_path, domain2_encoder_path, domain3_encoder_path, \
-    domain_classify_path, decoder_path, depth_map_path
+    domain_classify_path, decoder_path, depth_map_path,shared_feature_path
 
 def load_model_path(path, target_domain, number_folder, scratch, device):
     if scratch == 'True':

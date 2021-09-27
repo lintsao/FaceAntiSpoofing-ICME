@@ -75,7 +75,17 @@ class domain_classifier(nn.Module):
     def forward(self, x):
         x = self.model(x)
         return x
+class share_feature(nn.Module): # 2 types: real, fake
+    def __init__(self): # positive parameter means grl or not, True: not grl
+        super(share_feature, self).__init__()
+        self.cnn_layers = nn.Sequential(
+            nn.Conv2d(3, 3, 3, 1, 1),
+        )
+        #self.class_criterion = AngularPenaltySMLoss(512, 2, loss_type='cosface') # loss_type in ['arcface', 'sphereface', 'cosface']
 
+    def forward(self, x):
+        x = self.cnn_layers(x)
+        return x
 class decoder(nn.Module):
     def __init__(self, code_size=512):
         super(decoder, self).__init__()
