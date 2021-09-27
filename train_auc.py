@@ -128,6 +128,8 @@ def train_auc(args):
     print('epoch num = ', args.n_epoch, ', iter num = ', len_dataloader)
 
     for epoch in range(args.n_epoch):
+        if epoch % 10 == 0:
+            gamma*=0.9
         domain1_loader = DataLoader(domain1_real_dataset + domain1_print_dataset + domain1_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
         domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)

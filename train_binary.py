@@ -60,7 +60,9 @@ def train_binary(args):
     domain2_loader = DataLoader(domain2_real_dataset + domain2_print_dataset + domain2_replay_dataset, batch_size = args.batch_size, shuffle = True)
     domain3_loader = DataLoader(domain3_real_dataset + domain3_print_dataset + domain3_replay_dataset, batch_size = args.batch_size, shuffle = True)
 
-    shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
+    # shared_spoof = torchvision.models.resnet18(pretrained=True).to(device)
+    # shared_spoof = torchvision.models.resnet18(pretrained=False).to(device)
+    shared_spoof = torchvision.models.alexnet(pretrained=True).to(device)
     spoof_classify = spoof_classifier_auc().to(device)
     print("-------------------------------------------------- finish model --------------------------------------------------")
 
@@ -195,11 +197,11 @@ def train_binary(args):
         plot_auc.append(test_auc)
         plot_acc.append(test_acc)
         plot_hter.append(test_hter)
-        if test_auc > test_best_auc:
-            test_best_auc = test_auc
-            test_best_acc = test_acc
-            test_best_hter = test_hter
-            test_best_epoch = epoch
-            torch.save(shared_spoof, shared_spoof_path)
-            torch.save(spoof_classify, spoof_classify_path)
-            print('{}: save model'.format(args.target_domain))
+        # if test_auc > test_best_auc:
+        #     test_best_auc = test_auc
+        #     test_best_acc = test_acc
+        #     test_best_hter = test_hter
+        #     test_best_epoch = epoch
+        torch.save(shared_spoof, shared_spoof_path)
+        torch.save(spoof_classify, spoof_classify_path)
+        print('{}: save model'.format(args.target_domain))

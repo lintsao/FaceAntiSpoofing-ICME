@@ -500,9 +500,15 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     msu_train_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_train_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_train_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+<<<<<<< HEAD
     msu_train_real_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_train_print_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_train_replay_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+=======
+    # msu_train_real_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
+    # msu_train_print_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
+    # msu_train_replay_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
+>>>>>>> bc3cf4c84a58cbab1d947b8d7489482beb209058
     msu_test_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_test_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_test_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")
@@ -542,48 +548,48 @@ def choose_dataset(path, target_domain, img_size, depth_size):
 
     if target_domain == 'msu': 
         test_dataset = msu_test_real_dataset + msu_test_print_dataset + msu_test_replay_dataset
-        domain1_real_dataset = idiap_train_real_dataset + idiap_train_real_dataset_new
-        domain1_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset) + (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
-        domain1_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset) + (idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
-        domain2_real_dataset = oulu_train_real_dataset + oulu_train_real_dataset_new
-        domain2_print_dataset = oulu_train_print_dataset + oulu_train_print_dataset_new
-        domain2_replay_dataset = oulu_train_replay_dataset + oulu_train_replay_dataset_new
-        domain3_real_dataset = casia_train_real_dataset + casia_train_real_dataset_new
-        domain3_print_dataset = casia_train_print_dataset + casia_train_print_dataset_new
-        domain3_replay_dataset = casia_train_replay_dataset + casia_train_replay_dataset_new
+        domain1_real_dataset = idiap_train_real_dataset# + idiap_train_real_dataset_new
+        domain1_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset)# + (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
+        domain1_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset) #+ (idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
+        domain2_real_dataset = oulu_train_real_dataset# + oulu_train_real_dataset_new
+        domain2_print_dataset = oulu_train_print_dataset #+ oulu_train_print_dataset_new
+        domain2_replay_dataset = oulu_train_replay_dataset# + oulu_train_replay_dataset_new
+        domain3_real_dataset = casia_train_real_dataset #+ casia_train_real_dataset_new
+        domain3_print_dataset = casia_train_print_dataset #+ casia_train_print_dataset_new
+        domain3_replay_dataset = casia_train_replay_dataset#+ casia_train_replay_dataset_new
     elif target_domain == 'idiap':
         test_dataset = idiap_test_real_dataset + idiap_test_print_fixed_dataset + idiap_test_replay_fixed_dataset + idiap_test_print_hand_dataset + idiap_test_replay_hand_dataset 
-        domain1_real_dataset = msu_train_real_dataset + msu_train_real_dataset_new
-        domain1_print_dataset = msu_train_print_dataset + msu_train_print_dataset_new
-        domain1_replay_dataset = msu_train_replay_dataset + msu_train_replay_dataset_new
-        domain2_real_dataset = oulu_train_real_dataset + oulu_train_real_dataset_new
-        domain2_print_dataset = oulu_train_print_dataset + oulu_train_print_dataset_new
-        domain2_replay_dataset = oulu_train_replay_dataset + oulu_train_replay_dataset_new
-        domain3_real_dataset = casia_train_real_dataset + casia_train_real_dataset_new
-        domain3_print_dataset = casia_train_print_dataset + casia_train_print_dataset_new
-        domain3_replay_dataset = casia_train_replay_dataset + casia_train_replay_dataset_new 
+        domain1_real_dataset = msu_train_real_dataset #+ msu_train_real_dataset_new
+        domain1_print_dataset = msu_train_print_dataset #+ msu_train_print_dataset_new
+        domain1_replay_dataset = msu_train_replay_dataset# + msu_train_replay_dataset_new
+        domain2_real_dataset = oulu_train_real_dataset# + oulu_train_real_dataset_new
+        domain2_print_dataset = oulu_train_print_dataset# + oulu_train_print_dataset_new
+        domain2_replay_dataset = oulu_train_replay_dataset# + oulu_train_replay_dataset_new
+        domain3_real_dataset = casia_train_real_dataset# + casia_train_real_dataset_new
+        domain3_print_dataset = casia_train_print_dataset# + casia_train_print_dataset_new
+        domain3_replay_dataset = casia_train_replay_dataset# + casia_train_replay_dataset_new 
     elif target_domain == 'oulu':
         test_dataset = oulu_test_dataset
-        domain1_real_dataset = msu_train_real_dataset + msu_train_real_dataset_new
-        domain1_print_dataset = msu_train_print_dataset + msu_train_print_dataset_new
-        domain1_replay_dataset = msu_train_replay_dataset + msu_train_replay_dataset_new
-        domain2_real_dataset = idiap_train_real_dataset + idiap_train_real_dataset_new
-        domain2_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset) + (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
-        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset) + (idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
-        domain3_real_dataset = casia_train_real_dataset + casia_train_real_dataset_new
-        domain3_print_dataset = casia_train_print_dataset + casia_train_print_dataset_new
-        domain3_replay_dataset = casia_train_replay_dataset + casia_train_replay_dataset_new 
+        domain1_real_dataset = msu_train_real_dataset #+ msu_train_real_dataset_new
+        domain1_print_dataset = msu_train_print_dataset #+ msu_train_print_dataset_new
+        domain1_replay_dataset = msu_train_replay_dataset #+ msu_train_replay_dataset_new
+        domain2_real_dataset = idiap_train_real_dataset #+ idiap_train_real_dataset_new
+        domain2_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset)# + (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
+        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset)# + #(idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
+        domain3_real_dataset = casia_train_real_dataset #+ casia_train_real_dataset_new
+        domain3_print_dataset = casia_train_print_dataset# + casia_train_print_dataset_new
+        domain3_replay_dataset = casia_train_replay_dataset# + casia_train_replay_dataset_new 
     elif target_domain == 'casia':
         test_dataset = casia_test_dataset
-        domain1_real_dataset = msu_train_real_dataset + msu_train_real_dataset_new
-        domain1_print_dataset = msu_train_print_dataset + msu_train_print_dataset_new
-        domain1_replay_dataset = msu_train_replay_dataset + msu_train_replay_dataset_new
-        domain2_real_dataset = idiap_train_real_dataset + idiap_train_real_dataset_new
-        domain2_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset) + (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
-        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset) + (idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
-        domain3_real_dataset = oulu_train_real_dataset + oulu_train_real_dataset_new
-        domain3_print_dataset = oulu_train_print_dataset + oulu_train_print_dataset_new
-        domain3_replay_dataset = oulu_train_replay_dataset + oulu_train_replay_dataset_new
+        domain1_real_dataset = msu_train_real_dataset# + msu_train_real_dataset_new
+        domain1_print_dataset = msu_train_print_dataset# + msu_train_print_dataset_new
+        domain1_replay_dataset = msu_train_replay_dataset# + msu_train_replay_dataset_new
+        domain2_real_dataset = idiap_train_real_dataset# + idiap_train_real_dataset_new
+        domain2_print_dataset = (idiap_train_print_fixed_dataset + idiap_train_print_hand_dataset) #+ (idiap_train_print_fixed_dataset_new + idiap_train_print_hand_dataset_new)
+        domain2_replay_dataset = (idiap_train_replay_fixed_dataset + idiap_train_replay_hand_dataset) #+ (idiap_train_replay_fixed_dataset_new + idiap_train_replay_hand_dataset_new)
+        domain3_real_dataset = oulu_train_real_dataset# + oulu_train_real_dataset_new
+        domain3_print_dataset = oulu_train_print_dataset# + oulu_train_print_dataset_new
+        domain3_replay_dataset = oulu_train_replay_dataset# + oulu_train_replay_dataset_new
     return  test_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
             domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
             domain3_print_dataset, domain3_replay_dataset

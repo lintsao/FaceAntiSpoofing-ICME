@@ -1,6 +1,5 @@
 model
 dataset
-<<<<<<< HEAD
 *.png
 dataset_224
 dataset_256
@@ -8,12 +7,7 @@ cropped_img
 
 __pycache__/*
 
-
-
-
-
-
-=======
 pr_depth_map_256
-*.png
->>>>>>> 4511ea1045a2247ad3322d7714b22f7dde36e154
+*.png`
+*.jpg
+*.pytorch-grad-cam/sample_faces
