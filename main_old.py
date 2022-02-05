@@ -10,56 +10,33 @@ from train_noContentGRL2Spoof import *
 from train_auc_no_depth import *
 from train_auc_triplet_ours import *
 from train_auc_triplet_ssdg import *
-from train_auc_2domain import *
 from train_celeba import *
-from train_shared_auc import *
-from train_shared_nodomain import *
-from train_shared_nocontent import *
-from test_auc import *
+from train_celeba_baseline import *
+from train_celeba_nodomain import *
 
 def main(args):
-    if args.type == 'train_auc':
+    if args.type == 'auc':
         train_auc(args)
-
-    elif args.type == 'train_shared_auc':
-        train_shared_auc(args)
-
-    elif args.type == 'train_shared_auc_no_domain':
-        train_shared_auc_no_domain(args)
-
-    if args.type == 'train_shared_auc_no_content':
-        train_shared_auc_no_content(args)
-
-    elif args.type == 'train_acc':
+    elif args.type == 'acc':
         train_acc(args)
-
-    elif args.type == 'train_binary':
+    elif args.type == 'binary':
         train_binary(args)
-
-    elif args.type == 'train_noContent':
+    elif args.type == 'noContent':
         train_noContent(args)
-
-    elif args.type == 'train_noContentGRL2Spoof':
+    elif args.type == 'noContentGRL2Spoof':
         train_noContentGRL2Spoof(args)
-
-    elif args.type == 'train_noDepth':
+    elif args.type == 'noDepth':
         train_noDepth(args)
-
-    elif args.type == 'train_aucTripletOurs':
+    elif args.type == 'aucTripletOurs':
         train_auc_triplet_ours(args)
-
-    elif args.type == 'train_aucTripletSSDG':
+    elif args.type == 'aucTripletSSDG':
         train_auc_triplet_ssdg(args)
-
-    elif args.type == "train_2domain":
-        train_auc_2domain(args)
-
-    elif args.type == 'train_celeba':
+    elif args.type == 'celeba':
         train_celeba(args)
-
-    elif args.type == 'test_auc':
-        test_auc(args)
-
+    elif args.type == "celeba_baseline":
+        train_celeba_baseline(args)
+    elif args.type == "celeba_nodomain":
+        train_celeba_nodomain(args)
     else:
         warnings.warn("Please check your training type")
         sys.exit()
@@ -81,12 +58,10 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
     parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_256')
-    parser.add_argument('--type', type=str, default='train_auc')
+    parser.add_argument('--type', type=str, default='auc')
     parser.add_argument('--gpu_id', type=str, default='0')
-    parser.add_argument('--spoof_encoder', type=str, default="/home/tsaolin/Face_Anti-Spoofing/FaceAntiSpoofing-WACV/model/oulu/224_0/oulu_spoof_encoder.pt")
-    parser.add_argument('--spoof_classifier', type=str, default="/home/tsaolin/Face_Anti-Spoofing/FaceAntiSpoofing-WACV/model/oulu/224_0/oulu_spoof_classify.pt")
 
-    # datasets
+    # datasets 
     parser.add_argument('--target_domain', type=str, default='oulu')
     parser.add_argument('--number_folder', type=str, default='0')
    
@@ -95,14 +70,14 @@ if __name__ == '__main__':
     parser.add_argument('--load_folder', type=str, default='0')
 
     # optimizer
-    parser.add_argument('--lr', type=float, default=0.0001)
+    parser.add_argument('--lr', type=float, default=0.0003)
 
     # training configs
     parser.add_argument('--img_size', type=int, default=256) 
     parser.add_argument('--depth_size', type=int, default=64) 
-    parser.add_argument('--batch_size', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=20)
     parser.add_argument('--test_batch_size', type=int, default=64)
-    parser.add_argument('--batch_triplet', type=int, default=4)
+    parser.add_argument('--batch_triplet', type=int, default=4) 
     parser.add_argument('--n_epoch', type=int, default=100)
 
     print(parser.parse_args())

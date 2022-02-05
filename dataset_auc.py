@@ -500,15 +500,13 @@ def choose_dataset(path, target_domain, img_size, depth_size):
     msu_train_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_train_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_train_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
-<<<<<<< HEAD
     msu_train_real_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_train_print_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_train_replay_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
-=======
     # msu_train_real_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "real")
     # msu_train_print_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "print")
     # msu_train_replay_dataset_new = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame_new/crop_face'), 'train', transform = transform, transform_depth = transform_depth, attack = "replay")
->>>>>>> bc3cf4c84a58cbab1d947b8d7489482beb209058
+
     msu_test_real_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/real/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "real")
     msu_test_print_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "print")
     msu_test_replay_dataset = MSU_dataset(os.path.join(path, 'MSU/dataset/scene01/attack/crop_frame/crop_face'), 'test', transform = transform, transform_depth = transform_depth, attack = "replay")

@@ -35,10 +35,6 @@ def tsne(args):
     device = torch.device("cuda:0" if use_cuda else "cpu")
     print("finish initialization, device: {}".format(device))
 
-    img_size = 256
-    depth_size = 64
-    batch_size = 8
-
     test_real_dataset, test_spoof_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
     domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
     domain3_print_dataset, domain3_replay_dataset = choose_dataset(args.dataset_path, args.target_domain, args.img_size, args.depth_size)
@@ -63,7 +59,9 @@ def tsne(args):
     domain3_replay_loader = DataLoader(domain3_replay_dataset, batch_size = args.batch_size, shuffle = False)
     # Ethen
 
-    shared_spoof = torch.load("/home/tsaolin/Face_Anti-Spoofing/FaceAntiSpoofing-WACV/pytorch-grad-cam/OMIcelebaSpoof_spoof_encoder.pt", map_location=device)
+    # share_feature = torch.load()
+    shared_spoof = torch.load("/home/tsaolin/Face_Anti-Spoofing/FaceAntiSpoofing-WACV/idiap_spoof_encoder.pt", map_location=device)
+    # share_feature.eval()
     shared_spoof.eval()
 
     features = torch.tensor([]).to(device)
@@ -71,7 +69,7 @@ def tsne(args):
     domains = torch.tensor([]).to(device)
 
     with torch.no_grad():
-        sample_num = 199
+        sample_num = 40
         # MSU real: 'blue'
         for batch_idx, data in enumerate(domain1_real_loader):
             print("\r", batch_idx, '/', len(domain1_real_loader), end = "")
@@ -197,7 +195,7 @@ def tsne(args):
             attacks = torch.cat((attacks, label), 0)
             # attacks = torch.cat((attacks, torch.tensor([batch_idx+2]).to(device)), 0)
             domains = torch.cat((domains, torch.Tensor([3]).repeat(len(im)).to(device)), 0)
-            if batch_idx >= 199:
+            if batch_idx >= 40:
                 break
         # CELEBA-SPOOF fake: 'red'
         for batch_idx, data in enumerate(test_fake_loader):
@@ -209,7 +207,7 @@ def tsne(args):
             features = torch.cat((features, result), 0)
             attacks = torch.cat((attacks, label), 0)
             domains = torch.cat((domains, torch.Tensor([3]).repeat(len(im)).to(device)), 0)
-            if batch_idx >= 199:
+            if batch_idx >= 40:
                 break
         
         features = features.data.cpu().numpy()
@@ -217,7 +215,7 @@ def tsne(args):
         domains = domains.data.cpu().numpy()
 
     # tsne
-    features_embedded = TSNE(n_components=2, perplexity=30.0, random_state=0, n_iter=10000).fit_transform(features)
+    features_embedded = TSNE(n_components=2, perplexity=10.0, early_exaggeration=2.0, learning_rate=200.0, random_state=0, n_iter=10000).fit_transform(features)
 
     plt.figure(figsize=(16, 16))
     # plt.title("O&M&I to CelebA-Spoof", fontsize=30) # title

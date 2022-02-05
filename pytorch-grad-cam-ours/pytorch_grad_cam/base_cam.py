@@ -22,7 +22,8 @@ class BaseCAM:
             target_layer, reshape_transform)
 
     def forward(self, input_img):
-        return self.model(input_img)
+        # return self.model(input_img)
+        return self.model(input_img, True)
 
     def get_cam_weights(self,
                         input_tensor,
@@ -34,7 +35,8 @@ class BaseCAM:
     def get_loss(self, output, target_category):
         loss = 0
         for i in range(len(target_category)):
-            loss = loss + output[i, target_category[i]]
+            # loss = loss + output[i, target_category[i]]
+            loss = loss + output[i][0][target_category[i]]
         return loss
 
     def get_cam_image(self,

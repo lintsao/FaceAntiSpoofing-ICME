@@ -567,9 +567,9 @@ def choose_dataset(path, target_domain, img_size, depth_size):
         domain3_real_dataset = oulu_train_real_dataset
         domain3_print_dataset = oulu_train_print_dataset
         domain3_replay_dataset = oulu_train_replay_dataset
-    # return  test_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
-    #         domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
-    #         domain3_print_dataset, domain3_replay_dataset
-    return  celeba_test_real_dataset, celeba_test_spoof_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
+    return  test_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
             domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
             domain3_print_dataset, domain3_replay_dataset
+    #return  celeba_test_real_dataset, celeba_test_spoof_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
+    #        domain2_real_dataset, domain2_print_dataset, domain2_replay_dataset, domain3_real_dataset, \
+    #        domain3_print_dataset, domain3_replay_dataset

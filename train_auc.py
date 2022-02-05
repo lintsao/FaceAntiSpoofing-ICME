@@ -42,7 +42,7 @@ def train_auc(args):
 
     shared_spoof_path, spoof_classify_path, shared_content_path, \
     domain1_encoder_path, domain2_encoder_path, domain3_encoder_path, \
-    domain_classify_path, decoder_path, depth_map_path = make_model_path(args.path, args.target_domain, args.number_folder) 
+    domain_classify_path, _, depth_map_path = make_model_path(args.path, args.target_domain, args.number_folder) 
     print("-------------------------------------------------- finish model path --------------------------------------------------")
 
     test_dataset, domain1_real_dataset, domain1_print_dataset, domain1_replay_dataset, \
