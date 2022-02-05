@@ -52,8 +52,10 @@ You will get
 
 ### 3. Test model
 **FaceAntiSpoofing-WACV$ python3 main.py**
---dataset_path \<the path containing all datasets\> 
+--dataset_path \<the path containing all datasets\>
+
 --type test_auc 
+
 --target_domain \<generalized domain\>
 
 ### 4. Explainable AI (Lime)
