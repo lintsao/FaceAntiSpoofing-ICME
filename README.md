@@ -42,11 +42,10 @@ You will get
 - testing folder: Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp
 
 ### 2. Train model
-**FaceAntiSpoofing-WACV$ python3 main.py**
+**FaceAntiSpoofing-WACV$ python3 main.py --type train_<type>**
 
 ### 3. Test model
-**FaceAntiSpoofing-WACV$ python3 test.py**
+**FaceAntiSpoofing-WACV$ python3 main.py --type test_auc**
 
 ### 4. Explainable AI (Lime)
 **FaceAntiSpoofing-WACV$ python3 explainableAI_lime.py**
-
