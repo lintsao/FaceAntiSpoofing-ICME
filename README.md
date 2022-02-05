@@ -42,7 +42,13 @@ You will get
 - testing folder: Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp
 
 ### 2. Train model
-**FaceAntiSpoofing-WACV$ python3 main.py --dataset_path \<the path containing all datasets\> --type train_\<training type\> --target_domain \<generalized domain\>**
+**FaceAntiSpoofing-WACV$ python3 main.py**
+
+--dataset_path \<the path containing all datasets\> 
+
+--type train_\<training type\> 
+
+--target_domain \<generalized domain\>
 
 ### 3. Test model
 **FaceAntiSpoofing-WACV$ python3 main.py --dataset_path \<the path containing all datasets\> --type test_auc --target_domain \<generalized domain\>**
