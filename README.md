@@ -42,7 +42,7 @@ You will get
 - testing folder: Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp
 
 ### 2. Train model
-**FaceAntiSpoofing-WACV$ python3 main.py --type train_<type>**
+**FaceAntiSpoofing-WACV$ python3 main.py --type train_\<type\>**
 
 ### 3. Test model
 **FaceAntiSpoofing-WACV$ python3 main.py --type test_auc**
