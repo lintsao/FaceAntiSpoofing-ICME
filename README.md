@@ -44,6 +44,9 @@ You will get
 ### 2. Train model
 **FaceAntiSpoofing-WACV$ python3 main.py**
 
-### 3. Explainable AI (Lime)
+### 3. Test model
+**FaceAntiSpoofing-WACV$ python3 test.py**
+
+### 4. Explainable AI (Lime)
 **FaceAntiSpoofing-WACV$ python3 explainableAI_lime.py**
 
