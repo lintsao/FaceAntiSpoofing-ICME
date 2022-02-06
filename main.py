@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--path', type=str, default='./')
-    parser.add_argument('--dataset_path', type=str, default='../pr_depth_map_256')
+    parser.add_argument('--dataset_path', type=str, default='./pr_depth_map_256')
     parser.add_argument('--type', type=str, default='train_auc')
     parser.add_argument('--gpu_id', type=str, default='0')
     parser.add_argument('--spoof_encoder', type=str, default="/home/tsaolin/Face_Anti-Spoofing/FaceAntiSpoofing-WACV/model/oulu/224_0/oulu_spoof_encoder.pt")
