@@ -39,7 +39,10 @@ Test	     |  75   |    ? 	     |     ?	       |     ?  	     |    ?
 You will get
 
 - pr_depth_map_256
-- - Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp, CelebA_Spoof
+  - Oulu_NPU, MSU
+  - Replay_Attack
+  - CASIA_faceAntisp
+  - CelebA_Spoof
 
 ### 2. Train model
 **FaceAntiSpoofing-WACV$ python3 main.py**
