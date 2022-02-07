@@ -34,7 +34,7 @@ Test	     |  75   |    ? 	     |     ?	       |     ?  	     |    ?
 
 ## Usuage 
 ### 1. Download dataset
-**FaceAntiSpoofing-WACV$ download_sample_dataset.py**
+**FaceAntiSpoofing-WACV$ python3 download_sample_dataset.py**
 
 You will get
 
