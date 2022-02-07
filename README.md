@@ -33,13 +33,13 @@ Training	 |  90	 |    ?        |     ?	       |     ?         |    ?
 Test	     |  75   |    ? 	     |     ?	       |     ?  	     |    ? 
 
 ## Usuage 
-### 1. unzip dataset
-**unzip dataset.zip**
+### 1. Download dataset
+**FaceAntiSpoofing-WACV$ download_sample_dataset.py**
 
 You will get
 
-- training folder: pr_depth_map
-- testing folder: Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp
+- pr_depth_map_256
+- - Oulu_NPU, MSU, Replay_Attack, CASIA_faceAntisp, CelebA_Spoof
 
 ### 2. Train model
 **FaceAntiSpoofing-WACV$ python3 main.py**
